@@ -10,6 +10,18 @@ if TYPE_CHECKING:
 class BackwardMath():
   def __init__(self): pass
 
+  def compute_grad(self, var: TensorNode) -> ndarray:
+    operator_to_method = {
+      '@p': self.grad_for_matmul_primary,
+      '@s': self.grad_for_matmul_secondary,
+      '+p': self.grad_for_add,
+      '+s': self.grad_for_add,
+      'redsump': self.grad_for_reduce_sum,
+      '/p': self.grad_for_truediv,
+      '/s': self.grad_for_truediv
+    }
+    return operator_to_method[var.child.operation + var.node_type](var)
+
   def grad_for_matmul_primary(self, var: TensorNode) -> ndarray:
     return var.child.grad @ var.child.parent[1].tensor.T
   
@@ -35,3 +47,6 @@ class BackwardMath():
     # SELF.child.parent[1].tensor is a scalar since it is a SELF's denominator
     # SELF.grad could be a matrix / vector / scalar
     return 1.0/var.child.parent[1].tensor * var.child.grad
+  
+
+# future: skip connections
