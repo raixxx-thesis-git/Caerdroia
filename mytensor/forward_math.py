@@ -17,15 +17,23 @@ class ForwardMath():
   def __init__(self):
     pass
 
-  def basic_linalg(self, tensor_node: TensorNode, partner: TensorNode, operation: str) -> ndarray:
-    operator_dict = {'+': operator.add, 
-                     '-': operator.sub, 
-                     '@': operator.matmul, 
-                     '*': operator.mul,
-                     '/': operator.truediv,
-                     '**': operator.pow}
+  def add(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.add(A, B)
+  
+  def sub(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.sub(A, B)
 
-    return operator_dict[operation](tensor_node.tensor, partner.tensor)
+  def matmul(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.matmul(A, B) 
+
+  def mul(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.mul(A, B) 
+
+  def truediv(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.truediv(A, B) 
+    
+  def pow(self, A: ndarray, B: ndarray) -> ndarray:
+    return operator.pow(A, B)
   
   def reduce_sum(self, tensor_node: TensorNode, axis: int) -> ndarray:
     return cupy.sum(tensor_node.tensor, axis=axis, keepdims=True)

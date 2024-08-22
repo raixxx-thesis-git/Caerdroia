@@ -1,3 +1,3 @@
 autograd.ipynb
-autograd_venv/
+venv/
 mytensor/__pycache__
