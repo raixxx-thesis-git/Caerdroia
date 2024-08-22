@@ -35,6 +35,6 @@ class ForwardMath():
   def pow(self, A: ndarray, B: ndarray) -> ndarray:
     return operator.pow(A, B)
   
-  def reduce_sum(self, tensor_node: TensorNode, axis: int) -> ndarray:
+  def reduce_sum_(self, tensor_node: TensorNode, axis: int) -> ndarray:
     return cupy.sum(tensor_node.tensor, axis=axis, keepdims=True)
     
