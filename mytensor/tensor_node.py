@@ -48,65 +48,6 @@ class TensorNode(NodeComputer):
             f'is_weight:{self.is_weight}\n'
             f'is_constant:{self.is_constant}\n'
             f'data_shape:{cupy.shape(self.tensor)}')
-  
-  def backprop(self):
-    p_parent: TensorNode | None = self.parent[0]
-    s_parent: TensorNode | None = self.parent[1]
-    child: TensorNode | None = self.child
-    if child == None:
-      pass # do something!
-    partner: TensorNode| None = child.parent[1]
-
-    if self.node_type == 'p' and p_parent == None:
-      # move to partner
-      if not self.updated: self.grad = self.backward_math.compute_grad(self)
-      self.updated = True
-      if partner == None:
-        # perch to child
-        child.backprop()
-      else:
-        partner.backprop()
-      
-    elif self.node_type == 's' and p_parent == None:
-      # perch to child
-      if not self.updated: self.grad = self.backward_math.compute_grad(self)
-      self.updated = True
-      child.backprop()
-
-    elif not p_parent.updated:
-      # move to p_parent
-      if not self.updated: self.grad = self.backward_math.compute_grad(self)
-      self.updated = True
-      p_parent.backprop()
-
-    elif self.node_type == 'p' and p_parent.updated:
-      if not self.updated: self.grad = self.backward_math.compute_grad(self)
-      self.updated = True
-      if s_parent == None:
-        # set parent's update state to default
-        p_parent.updated = False
-        # perch to child
-        child.backprop()
-      elif s_parent.updated:
-        # set parents' update state to defualt
-        p_parent.updated = False
-        s_parent.updated = False
-        # move to partner
-        if partner == None: return
-        else: partner.backprop()
-
-    elif self.node_type == 's' and p_parent.updated:
-      if not self.updated: self.grad = self.backward_math.compute_grad(self)
-      self.updated = True
-      if s_parent == None:
-        # set parent's update state to default
-        p_parent.updated = False
-        # perch to child
-      elif s_parent.updated:
-        # set parents' update state to defualt
-        p_parent.updated = False
-        s_parent.updated = False
-      child.backprop()
 
   @property
   def T(self):
