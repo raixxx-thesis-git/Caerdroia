@@ -35,6 +35,13 @@ class ForwardMath():
   def pow(self, A: ndarray, B: ndarray) -> ndarray:
     return operator.pow(A, B)
   
-  def reduce_sum_(self, tensor_node: TensorNode, axis: int) -> ndarray:
-    return cupy.sum(tensor_node.tensor, axis=axis, keepdims=True)
+  def log_(self, A: ndarray, basis: int) -> ndarray:
+    return cupy.log(A)/cupy.log(basis)
+  
+  def abs_(self, A: ndarray) -> ndarray:
+    return cupy.absolute(A)
+  
+  def reduce_sum_(self, A: ndarray, axis: int) -> ndarray:
+    return cupy.sum(A, axis=axis, keepdims=True)
+  
     

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from cupy import ndarray
 from mytensor import ForwardMath
 from mytensor import BackwardMath
@@ -84,9 +84,30 @@ class NodeComputer(ForwardMath, BackwardMath):
     return self.make_child(partner, '**.', value)
 
   def reduce_sum(self, axis: int) -> TensorNode:
-    value = self.reduce_sum_(self, axis)
+    value = self.reduce_sum_(self.tensor, axis)
     return self.make_child(None, 'redsum.', value)
   
+  def log(self, basis: int) -> TensorNode:
+    self.temp_state_log_basis = basis
+    value = self.log_(self.tensor, basis)
+    return self.make_child(None, f'log.', value, basis)
+  
+  def abs(self) -> TensorNode:
+    value = self.abs_(self.tensor)
+    return self.make_child(None, f'abs.', value)
+  
+  def conditional_func(self, maps: List[TensorNode], conditions: List[str]) -> TensorNode:
+    new_matrix = cupy.array(self.tensor)
+    
+    self.temp_state_conditional_func_conditions = conditions
+    self.temp_state_conditional_func_maps = maps
+
+    for map, condition in zip(maps, conditions):
+      condition_ = cupy.argwhere(eval(condition.replace('X', 'self.tensor')))
+      new_matrix[condition_[:,0], condition_[:,1]] = map.tensor[condition_[:,0], condition_[:,1]]
+    
+    return self.make_child(None, f'condfunc.', new_matrix)
+
   def compute_grad(self):
     operation = self.child.operation
     operation_operator = {
@@ -96,9 +117,15 @@ class NodeComputer(ForwardMath, BackwardMath):
       '*': self.grad_for_mul,
       '@': self.grad_for_matmul,
       '**': self.grad_for_pow,
+      'log': self.grad_for_log,
+      'abs': self.grad_for_abs,
       'redsum': self.grad_for_reduce_sum
     }
     return operation_operator[operation](self)
+
+  def update(self):
+    if not self.updated: self.grad = self.compute_grad()
+    self.updated = True
 
   def backprop(self):
     # for pylance
@@ -109,52 +136,59 @@ class NodeComputer(ForwardMath, BackwardMath):
     child: None | TensorNode = self.child
     
     if child == None:
-      partner = None
+      partner = None if not p_parent.updated else -1
     else:
       partner: TensorNode| None = child.parent[1]
 
+    print(self.name, self.node_type)
     if self.node_type == 'p' and p_parent == None:
-      # move to partner
-      if not self.updated: self.grad = self.compute_grad()
-      self.updated = True
-      if partner == None:
-        # perch to child
+      self.update()
+      if partner == None or partner.is_constant:
+        # move to child
         child.backprop()
       else:
+        # move to partner
         partner.backprop()
-      
+    
     elif self.node_type == 's' and p_parent == None:
-      # perch to child
-      if not self.updated: self.grad = self.compute_grad()
-      self.updated = True
+      # move to child
+      self.update()
       child.backprop()
 
-    elif not p_parent.updated:
-      # move to p_parent
+    elif not p_parent.updated and not p_parent.is_constant:
       if child == None: self.grad = cupy.array([[1.]])
       elif not self.updated: self.grad = self.compute_grad()
+      
+      # move to p_parent
       self.updated = True
       p_parent.backprop()
-
-    elif self.node_type == 'p' and p_parent.updated:
-      if not self.updated: self.grad = self.compute_grad()
-      self.updated = True
+      return
+        
+    elif self.node_type == 'p' and (p_parent.updated or p_parent.is_constant):
+      self.update()
       if s_parent == None:
-        # set parent's update state to default
         p_parent.updated = False
-        # perch to child
+        # move to child
+        if partner == -1: return
         child.backprop()
-      elif s_parent.updated:
+        return
+      elif s_parent.updated or s_parent.is_constant:
         # set parents' update state to defualt
         p_parent.updated = False
         s_parent.updated = False
         # move to partner
-        if partner == None: return
-        else: partner.backprop()
+        if partner == -1:
+          return
+        elif partner == None or partner.is_constant: 
+          child.backprop()
+          return
+        else: 
+          partner.backprop()
+          return
+      print('err', self.name, s_parent.is_constant)
 
-    elif self.node_type == 's' and p_parent.updated:
-      if not self.updated: self.grad = self.compute_grad()
-      self.updated = True
+    elif self.node_type == 's' and (p_parent.updated or p_parent.is_constant):
+      self.update()
       if s_parent == None:
         # set parent's update state to default
         p_parent.updated = False
@@ -164,3 +198,15 @@ class NodeComputer(ForwardMath, BackwardMath):
         p_parent.updated = False
         s_parent.updated = False
       child.backprop()
+
+    elif not s_parent.updated and not s_parent.is_constant:
+      if child == None: self.grad = cupy.array([[1.]])
+      elif not self.updated: self.grad = self.compute_grad()
+      
+      # move to p_parent
+      self.updated = True
+      if not p_parent.is_constant:
+        p_parent.backprop()
+      elif not s_parent.is_constant:
+        s_parent.backprop()
+      return
