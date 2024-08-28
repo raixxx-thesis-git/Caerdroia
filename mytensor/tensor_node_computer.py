@@ -80,7 +80,7 @@ class NodeComputer(ForwardMath, BackwardMath):
   
   def __pow__(self,  partner: TensorNode | float) -> TensorNode:
     partner = self.partner_assure_tensornode(partner)
-    value = self.basic_linalg(self, partner, '**')
+    value = self.pow(self.tensor, partner.tensor)
     return self.make_child(partner, '**.', value)
 
   def reduce_sum(self, axis: int) -> TensorNode:
@@ -95,6 +95,7 @@ class NodeComputer(ForwardMath, BackwardMath):
       '/': self.grad_for_truediv,
       '*': self.grad_for_mul,
       '@': self.grad_for_matmul,
+      '**': self.grad_for_pow,
       'redsum': self.grad_for_reduce_sum
     }
     return operation_operator[operation](self)

@@ -18,7 +18,6 @@ class BackwardMath():
       partner: TensorNode = var.child.parent[1]
     elif node_type == 's':
       partner: TensorNode = var.child.parent[0]
-
  
     prev_grad: ndarray = cupy.array([[1.]])
     A: ndarray = var.tensor
@@ -52,9 +51,13 @@ class BackwardMath():
   def grad_for_add(self, var: TensorNode):
     A, B, prev_grad, node_type = self.get_attributes(var)
 
-    # for space of A == space of B == space of C == R^{PxQ} where C=A+B
-    if A.shape == B.shape:
+    if (A.shape == B.shape) or (A.shape[0] != 1 and A.shape[1] == B.shape[1]):
+      # if A + B = C or B + A = C where A is R^{MxN} and B is R^{MxN} or R^{1xN}
       return prev_grad
+    
+    elif A.shape[0] == 1 and A.shape[1] == B.shape[1]:
+      # if A + B = C or B + A = C where A is R^{1xN} and B is R^{MxN}
+      return cupy.sum(prev_grad, axis=0, keepdims=True)
     
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
@@ -62,10 +65,12 @@ class BackwardMath():
   def grad_for_sub(self, var: TensorNode):
     A, B, prev_grad, node_type = self.get_attributes(var)
 
-    # for space of A == space of B == space of C == R^{PxQ} where C=A-B
     if A.shape == B.shape and node_type == 'p':
+      # if A - B = C where A is R^{MxN} and B is R^{MxN}
       return prev_grad
+    
     elif A.shape == B.shape and node_type == 's':
+      # if B - A = C where A is R^{MxN} and B is R^{MxN}
       return -1 * prev_grad
     
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
@@ -73,20 +78,14 @@ class BackwardMath():
 
   def grad_for_truediv(self, var: TensorNode) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
-    print(var.name)
-    if type(prev_grad) == type(None):
-      return 1.0 / B
-    # for space of A == space of B == space of C == R^{PxQ} where C=A/B 
-    if A.shape == B.shape and node_type == 'p':
+    
+    if (A.shape == B.shape or B.shape == ()) and node_type == 'p':
+      # if A/B = C where A is R^{MxN} and B is R^{MxN} or R^{1x1}
       return (1 / B) * prev_grad
-    elif A.shape == B.shape and node_type == 's':
-      print('xxx', B, A)
-      print(var.child.parent)
+    
+    elif (A.shape == B.shape or B.shape == ()) and node_type == 's':
+      # if B/A = C where A is R^{MxN} and B is R^{MxN} or R^{1x1}
       return -1 * (B / A**2) * prev_grad
-    elif B.shape == () and node_type == 'p':
-      return (1/B) * prev_grad
-    elif B.shape == () and node_type == 's':
-      return - (B/(A**2)) * prev_grad
     
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
@@ -101,4 +100,10 @@ class BackwardMath():
     
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
+
+  def grad_for_pow(self, var: TensorNode) -> ndarray:
+    A, B, prev_grad, node_type = self.get_attributes(var)
+
+    # if A^B = C where A is R^{MxN} and B is R^{1x1}
+    return B * A**(B - 1) * prev_grad
 # future: skip connections
