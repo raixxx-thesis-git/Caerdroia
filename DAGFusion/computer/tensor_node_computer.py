@@ -1,20 +1,58 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List
 from cupy import ndarray
-from mytensor import ForwardMath
-from mytensor import BackwardMath
+from DAGFusion.computer import secure_type
+from DAGFusion.math import ForwardMath, BackwardMath
+from DAGFusion.node_structures import Triad, Dyad
+
 if TYPE_CHECKING:
-  from mytensor import TensorNode
+  from DAGFusion import TensorNode
 
 import cupy
 
 class NodeComputer(ForwardMath, BackwardMath):
   def __init__(self):
-    pass
+    self.operation_operator = {
+      '+': self.grad_for_add,
+      '-': self.grad_for_sub,
+      '/': self.grad_for_truediv,
+      '*': self.grad_for_mul,
+      '@': self.grad_for_matmul,
+      '**': self.grad_for_pow,
+      'log': self.grad_for_log,
+      'abs': self.grad_for_abs,
+      'redsum': self.grad_for_reduce_sum,
+      'condmap': self.grad_for_conditional_map
+    }
+
+  def complete_adic(self: TensorNode, coop: TensorNode | None, operation: str, 
+                    outcome: ndarray) -> TensorNode:
+    # import TensorNode module is put here to avoid a circular import.
+    from DAGFusion import TensorNode
+
+    operator = operation[:-1]
+    operation_flag = operation[-1]
+
+    outcome_node = TensorNode(outcome)
+
+    if coop == None:
+      adic = Dyad(self, outcome_node, operator)
+      adic.set_prev(self.adic)
+    elif operation_flag == 'r':
+      adic = Triad(coop, self, outcome_node, operator)
+      adic.set_prev((coop.adic, self.adic))
+    elif operation_flag == '.':
+      adic = Triad(self, coop, outcome_node, operator)
+      adic.set_prev((self.adic, coop.adic))
+
+    outcome_node.adic = adic
+
+    return outcome_node
+
 
   def make_child(self, partner: TensorNode | None, operation: str, value: ndarray) -> TensorNode:
     # import TensorNode module is put here to avoid a circular import.
-    from mytensor import TensorNode
+    from DAGFusion import TensorNode
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -43,16 +81,16 @@ class NodeComputer(ForwardMath, BackwardMath):
 
   def partner_assure_tensornode(self, partner: TensorNode | float) -> TensorNode:
     # import TensorNode module is put here to avoid a circular import.
-    from mytensor import TensorNode
+    from DAGFusion import TensorNode
 
     if type(partner) == float:
       partner = TensorNode(partner, name=str(partner), is_constant=True)
     return partner
   
-  def __add__(self, partner: TensorNode) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
-    value = self.add(self.tensor, partner.tensor)
-    return self.make_child(partner, '+.', value)
+  def __add__(self, coop: TensorNode) -> TensorNode:
+    coop = secure_type(coop)
+    outcome = self.add(self.tensor, coop.tensor)
+    return self.complete_adic(coop, '+.', outcome)
 
   def __sub__(self, partner: TensorNode) -> TensorNode:
     partner = self.partner_assure_tensornode(partner)
@@ -90,13 +128,13 @@ class NodeComputer(ForwardMath, BackwardMath):
   def log(self, basis: int) -> TensorNode:
     self.temp_state_log_basis = basis
     value = self.log_(self.tensor, basis)
-    return self.make_child(None, f'log.', value, basis)
+    return self.make_child(None, f'log.', value)
   
   def abs(self) -> TensorNode:
     value = self.abs_(self.tensor)
     return self.make_child(None, f'abs.', value)
   
-  def conditional_func(self, maps: List[TensorNode], conditions: List[str]) -> TensorNode:
+  def conditional_map(self, maps: List[TensorNode], conditions: List[str]) -> TensorNode:
     new_matrix = cupy.array(self.tensor)
     
     self.temp_state_conditional_func_conditions = conditions
@@ -104,24 +142,27 @@ class NodeComputer(ForwardMath, BackwardMath):
 
     for map, condition in zip(maps, conditions):
       condition_ = cupy.argwhere(eval(condition.replace('X', 'self.tensor')))
+      map.child = self
       new_matrix[condition_[:,0], condition_[:,1]] = map.tensor[condition_[:,0], condition_[:,1]]
     
-    return self.make_child(None, f'condfunc.', new_matrix)
+    return self.make_child(None, f'condmap.', new_matrix)
+  
+  def grad_for_conditional_map(self, var: TensorNode) -> ndarray:
+    maps = var.temp_state_conditional_func_maps
+    conditions = var.temp_state_conditional_func_conditions
+    new_matrix = self.tensor
 
+    for map, condition in zip(maps, conditions):
+      condition_ = cupy.argwhere(eval(condition.replace('X', 'self.tensor')))
+      print(map.parent)
+      grad_map = self.operation_operator[map.operation](map.parent[0])
+      new_matrix[condition_[:,0], condition_[:,1]] = grad_map.tensor[condition_[:,0], condition_[:,1]]
+
+    return new_matrix
+  
   def compute_grad(self):
     operation = self.child.operation
-    operation_operator = {
-      '+': self.grad_for_add,
-      '-': self.grad_for_sub,
-      '/': self.grad_for_truediv,
-      '*': self.grad_for_mul,
-      '@': self.grad_for_matmul,
-      '**': self.grad_for_pow,
-      'log': self.grad_for_log,
-      'abs': self.grad_for_abs,
-      'redsum': self.grad_for_reduce_sum
-    }
-    return operation_operator[operation](self)
+    return self.operation_operator[operation](self)
 
   def update(self):
     if not self.updated: self.grad = self.compute_grad()

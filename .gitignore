@@ -1,3 +1,5 @@
 autograd.ipynb
 venv/
-mytensor/__pycache__
+DAGFusion/__pycache__
+DAGFusion/node_structures/__pycache__
+DAGFusion/computer/__pycache__

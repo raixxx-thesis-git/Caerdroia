@@ -5,7 +5,7 @@ from cupy import ndarray
 import cupy
 
 if TYPE_CHECKING:
-  from mytensor import TensorNode
+  from DAGFusion import TensorNode
 
 class BackwardMath():
   def __init__(self): pass
@@ -92,13 +92,13 @@ class BackwardMath():
 
   def grad_for_mul(self, var: TensorNode) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
-    
-    if A.shape == B.shape:
+    print('xxx', B)
+    if A.shape == B.shape or B.shape == ():
       # if A ☉ B = C where A and B are R^{MxN}
       return B * prev_grad
     
-    print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
-    print(f'Your expression might be unsupported!')
+    print(f'WARNINGx: Tensor {var.name} with node_type {node_type} does not have a gradient!')
+    print(f'Your expression might be unsupported! ')
 
   def grad_for_pow(self, var: TensorNode) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
@@ -116,6 +116,8 @@ class BackwardMath():
   def grad_for_abs(self, var: TensorNode) -> ndarray:
     A, _, prev_grad, _ = self.get_attributes(var)
 
+    # if |A| = C where A is R^{MxN}
     return (A/cupy.absolute(A)) * prev_grad
+
 # future: skip connections
 

@@ -6,7 +6,7 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from mytensor import TensorNode
+  from DAGFusion import TensorNode
 
 
 class TensorMathError(Exception):

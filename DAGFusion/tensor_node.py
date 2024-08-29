@@ -2,12 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from cupy import ndarray
 from typing import List, Any, Tuple
-
-from mytensor import BackwardMath
-from mytensor import NodeComputer
+from DAGFusion.computer import NodeComputer
 
 if TYPE_CHECKING:
-  from mytensor.tensor_node import TensorNode
+  from DAGFusion.tensor_node import TensorNode
+  from DAGFusion.node_structures import Triad, Dyad
 
 import cupy
 
@@ -31,7 +30,7 @@ class TensorNode(NodeComputer):
       self.tensor: ndarray = cupy.array(tensor)
     else: raise TensorNodeError('Unknown tensor.')
 
-    self.backward_math = BackwardMath()
+    super().__init__()
     self.name = name
     self.parent = parent
     self.child = child
@@ -41,6 +40,7 @@ class TensorNode(NodeComputer):
     self.is_constant = is_constant
     self.updated = False
     self.node_type = node_type
+    self.adic = None
   
   def __repr__(self) -> str:
     return (f'TensorNode\nName:{self.name}\n'
