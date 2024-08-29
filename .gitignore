@@ -1,5 +1,5 @@
 autograd.ipynb
 venv/
-DAGFusion/__pycache__
-DAGFusion/node_structures/__pycache__
-DAGFusion/computer/__pycache__
+DAGForger/__pycache__
+DAGForger/node_structures/__pycache__
+DAGForger/computer/__pycache__
