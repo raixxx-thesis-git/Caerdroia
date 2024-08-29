@@ -2,19 +2,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from cupy import ndarray
 from typing import List, Any, Tuple
-from DAGFusion.computer import NodeComputer
+from DAGForger.forger import Forger
 
 if TYPE_CHECKING:
-  from DAGFusion.tensor_node import TensorNode
-  from DAGFusion.node_structures import Triad, Dyad
+  from DAGForger.dag.tensor_node import DAGNode
+  from DAGForger.dag import Triad, Dyad
 
 import cupy
 
-class TensorNodeError(Exception):
+class DAGNodeError(Exception):
   def __init__(self, msg):
     super().__init__(msg)
 
-class TensorNode(NodeComputer):
+class DAGNode(Forger):
   def __init__(self, tensor: ndarray | List[Any], 
                name: str = None, 
                parent: Tuple[int|None, int|None] = (None, None), 
@@ -28,7 +28,7 @@ class TensorNode(NodeComputer):
       self.tensor: ndarray = tensor
     elif type(tensor) == list or type(tensor) == float: 
       self.tensor: ndarray = cupy.array(tensor)
-    else: raise TensorNodeError('Unknown tensor.')
+    else: raise DAGNodeError('Unknown tensor.')
 
     super().__init__()
     self.name = name
@@ -43,7 +43,7 @@ class TensorNode(NodeComputer):
     self.adic = None
   
   def __repr__(self) -> str:
-    return (f'TensorNode\nName:{self.name}\n'
+    return (f'DAGNode\nName:{self.name}\n'
             f'Memory:{id(self)}\n'
             f'is_weight:{self.is_weight}\n'
             f'is_constant:{self.is_constant}\n'
@@ -51,4 +51,5 @@ class TensorNode(NodeComputer):
 
   @property
   def T(self):
-    return TensorNode(self.tensor.T, name=f'{self.name}.T')
+    return DAGNode(self.tensor.T, name=f'{self.name}.T')
+

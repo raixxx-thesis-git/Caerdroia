@@ -1,16 +1,16 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List
 from cupy import ndarray
-from DAGFusion.computer import secure_type
-from DAGFusion.math import ForwardMath, BackwardMath
-from DAGFusion.node_structures import Triad, Dyad
+from DAGForger.forger import secure_type
+from DAGForger.math import ForwardMath, BackwardMath
+from DAGForger.dag import Triad, Dyad
 
 if TYPE_CHECKING:
-  from DAGFusion import TensorNode
+  from DAGForger import DAGNode
 
 import cupy
 
-class NodeComputer(ForwardMath, BackwardMath):
+class Forger(ForwardMath, BackwardMath):
   def __init__(self):
     self.operation_operator = {
       '+': self.grad_for_add,
@@ -25,15 +25,15 @@ class NodeComputer(ForwardMath, BackwardMath):
       'condmap': self.grad_for_conditional_map
     }
 
-  def complete_adic(self: TensorNode, coop: TensorNode | None, operation: str, 
-                    outcome: ndarray) -> TensorNode:
-    # import TensorNode module is put here to avoid a circular import.
-    from DAGFusion import TensorNode
+  def complete_adic(self: DAGNode, coop: DAGNode | None, operation: str, 
+                    outcome: ndarray) -> DAGNode:
+    # import DAGNode module is put here to avoid a circular import.
+    from DAGForger import DAGNode
 
     operator = operation[:-1]
     operation_flag = operation[-1]
 
-    outcome_node = TensorNode(outcome)
+    outcome_node = DAGNode(outcome)
 
     if coop == None:
       adic = Dyad(self, outcome_node, operator)
@@ -50,9 +50,9 @@ class NodeComputer(ForwardMath, BackwardMath):
     return outcome_node
 
 
-  def make_child(self, partner: TensorNode | None, operation: str, value: ndarray) -> TensorNode:
-    # import TensorNode module is put here to avoid a circular import.
-    from DAGFusion import TensorNode
+  def make_child(self, partner: DAGNode | None, operation: str, value: ndarray) -> DAGNode:
+    # import DAGNode module is put here to avoid a circular import.
+    from DAGForger import DAGNode
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -70,7 +70,7 @@ class NodeComputer(ForwardMath, BackwardMath):
       self.node_type = 'p'
       parent = (self, partner)
 
-    child = TensorNode(value, parent=parent, name=name, operation=operator)
+    child = DAGNode(value, parent=parent, name=name, operation=operator)
 
     self.child = child
     if partner != None: 
@@ -79,62 +79,62 @@ class NodeComputer(ForwardMath, BackwardMath):
 
     return child
 
-  def partner_assure_tensornode(self, partner: TensorNode | float) -> TensorNode:
-    # import TensorNode module is put here to avoid a circular import.
-    from DAGFusion import TensorNode
+  def partner_assure_DAGNode(self, partner: DAGNode | float) -> DAGNode:
+    # import DAGNode module is put here to avoid a circular import.
+    from DAGForger import DAGNode
 
     if type(partner) == float:
-      partner = TensorNode(partner, name=str(partner), is_constant=True)
+      partner = DAGNode(partner, name=str(partner), is_constant=True)
     return partner
   
-  def __add__(self, coop: TensorNode) -> TensorNode:
+  def __add__(self, coop: DAGNode) -> DAGNode:
     coop = secure_type(coop)
     outcome = self.add(self.tensor, coop.tensor)
     return self.complete_adic(coop, '+.', outcome)
 
-  def __sub__(self, partner: TensorNode) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
+  def __sub__(self, partner: DAGNode) -> DAGNode:
+    partner = self.partner_assure_DAGNode(partner)
     value = self.sub(self.tensor, partner.tensor)
     return self.make_child(partner, '-.', value)
   
-  def __matmul__(self, partner: TensorNode) -> TensorNode:
+  def __matmul__(self, partner: DAGNode) -> DAGNode:
     value = self.matmul(self.tensor, partner.tensor)
     return self.make_child(partner, '@.', value)
 
-  def __mul__(self, partner: TensorNode) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
+  def __mul__(self, partner: DAGNode) -> DAGNode:
+    partner = self.partner_assure_DAGNode(partner)
     value = self.mul(self.tensor, partner.tensor)
     return self.make_child(partner, '*.', value)
 
-  def __truediv__(self, partner: TensorNode) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
+  def __truediv__(self, partner: DAGNode) -> DAGNode:
+    partner = self.partner_assure_DAGNode(partner)
     value = self.truediv(self.tensor, partner.tensor)
     return self.make_child(partner, '/.', value)
   
-  def __rtruediv__(self, partner: TensorNode) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
+  def __rtruediv__(self, partner: DAGNode) -> DAGNode:
+    partner = self.partner_assure_DAGNode(partner)
     value = self.truediv(partner.tensor, self.tensor)
     return self.make_child(partner, '/r', value)
   
-  def __pow__(self,  partner: TensorNode | float) -> TensorNode:
-    partner = self.partner_assure_tensornode(partner)
+  def __pow__(self,  partner: DAGNode | float) -> DAGNode:
+    partner = self.partner_assure_DAGNode(partner)
     value = self.pow(self.tensor, partner.tensor)
     return self.make_child(partner, '**.', value)
 
-  def reduce_sum(self, axis: int) -> TensorNode:
+  def reduce_sum(self, axis: int) -> DAGNode:
     value = self.reduce_sum_(self.tensor, axis)
     return self.make_child(None, 'redsum.', value)
   
-  def log(self, basis: int) -> TensorNode:
+  def log(self, basis: int) -> DAGNode:
     self.temp_state_log_basis = basis
     value = self.log_(self.tensor, basis)
     return self.make_child(None, f'log.', value)
   
-  def abs(self) -> TensorNode:
+  def abs(self) -> DAGNode:
     value = self.abs_(self.tensor)
     return self.make_child(None, f'abs.', value)
   
-  def conditional_map(self, maps: List[TensorNode], conditions: List[str]) -> TensorNode:
+  def conditional_map(self, maps: List[DAGNode], conditions: List[str]) -> DAGNode:
     new_matrix = cupy.array(self.tensor)
     
     self.temp_state_conditional_func_conditions = conditions
@@ -147,7 +147,7 @@ class NodeComputer(ForwardMath, BackwardMath):
     
     return self.make_child(None, f'condmap.', new_matrix)
   
-  def grad_for_conditional_map(self, var: TensorNode) -> ndarray:
+  def grad_for_conditional_map(self, var: DAGNode) -> ndarray:
     maps = var.temp_state_conditional_func_maps
     conditions = var.temp_state_conditional_func_conditions
     new_matrix = self.tensor
@@ -170,16 +170,16 @@ class NodeComputer(ForwardMath, BackwardMath):
 
   def backprop(self):
     # for pylance
-    self.child: None | TensorNode
+    self.child: None | DAGNode
 
-    p_parent: TensorNode | None = self.parent[0]
-    s_parent: TensorNode | None = self.parent[1]
-    child: None | TensorNode = self.child
+    p_parent: DAGNode | None = self.parent[0]
+    s_parent: DAGNode | None = self.parent[1]
+    child: None | DAGNode = self.child
     
     if child == None:
       partner = None if not p_parent.updated else -1
     else:
-      partner: TensorNode| None = child.parent[1]
+      partner: DAGNode| None = child.parent[1]
 
     print(self.name, self.node_type)
     if self.node_type == 'p' and p_parent == None:
@@ -251,3 +251,4 @@ class NodeComputer(ForwardMath, BackwardMath):
       elif not s_parent.is_constant:
         s_parent.backprop()
       return
+      

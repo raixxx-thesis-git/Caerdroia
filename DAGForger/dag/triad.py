@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
-  from DAGFusion import TensorNode
-  from DAGFusion.node_structures import Dyad
+  from DAGForger import DAGNode
+  from DAGForger.dag import Dyad
 
 class Triad():
-  def __init__(self, l_operand: TensorNode, r_operand: TensorNode, 
-               outcome: TensorNode, operator: str) -> None:
+  def __init__(self, l_operand: DAGNode, r_operand: DAGNode, 
+               outcome: DAGNode, operator: str) -> None:
     self.l = l_operand
     self.r = r_operand
     self.o = outcome
@@ -22,8 +22,9 @@ class Triad():
   def get_operator(self) -> str:
     return self.operator
   
-  def get_outcome(self) -> TensorNode:
+  def get_outcome(self) -> DAGNode:
     return self.o
   
   def __repr__(self) -> str:
     return f'Triad({self.l.name}, {self.r.name}, {self.o.name}; {self.operator})'
+  

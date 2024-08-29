@@ -6,7 +6,7 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from DAGFusion import TensorNode
+  from DAGForger import DAGNode
 
 
 class TensorMathError(Exception):
@@ -44,4 +44,3 @@ class ForwardMath():
   def reduce_sum_(self, A: ndarray, axis: int) -> ndarray:
     return cupy.sum(A, axis=axis, keepdims=True)
   
-    
