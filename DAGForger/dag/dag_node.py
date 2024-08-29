@@ -1,11 +1,11 @@
 from __future__ import annotations 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
 from typing import List, Any, Tuple
 from DAGForger.forger import Forger
 
 if TYPE_CHECKING:
-  from DAGForger.dag.tensor_node import DAGNode
+  from DAGForger.dag.dag_node import DAGNode
   from DAGForger.dag import Triad, Dyad
 
 import cupy
@@ -40,7 +40,7 @@ class DAGNode(Forger):
     self.is_constant = is_constant
     self.updated = False
     self.node_type = node_type
-    self.adic = None
+    self.adic: Optional[Union[Triad, Dyad]] = None
   
   def __repr__(self) -> str:
     return (f'DAGNode\nName:{self.name}\n'

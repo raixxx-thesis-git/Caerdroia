@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Union, Optional
 
 if TYPE_CHECKING:
   from DAGForger import DAGNode
@@ -11,12 +11,18 @@ class Dyad():
     self.o = outcome
     self.operator = operator
 
-  def set_next(self, next_adic: Triad|Dyad) -> None:
+  def set_next(self, next_adic: Union[Triad, Dyad]) -> None:
     self.next = next_adic
   
-  def set_prev(self, prev_adic: Triad|Dyad) -> None:
+  def set_prev(self, prev_adic: Optional[Union[Triad, Dyad]]) -> None:
     self.prev = prev_adic
 
+  def get_prev(self) -> Optional[Union[Triad, Dyad]]:
+    return self.prev
+  
+  def get_next(self) -> Union[Triad, Dyad]:
+    return self.next
+  
   def get_operator(self) -> str:
     return self.operator
   
