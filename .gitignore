@@ -1,8 +1,8 @@
 autograd.ipynb
 venv/
-DAGForger/__pycache__
-DAGForger/forger/__pycache__
-DAGForger/dag/__pycache__
-DAGForger/math/__pycache__
+Rivers/__pycache__
+Rivers/system/__pycache__
+Rivers/graph/__pycache__
+Rivers/math/__pycache__
 
 # git rm -r --cached .
