@@ -6,7 +6,7 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from DAGForger import DAGNode
+  from Rivers import Node
 
 
 class TensorMathError(Exception):

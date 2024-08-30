@@ -3,10 +3,10 @@ from graphviz import Digraph
 from typing import TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:
-  from DAGForger.dag import Triad, Dyad
+  from Rivers.graph import Triplet, Duplet
 
 class Grapher():
   def __init__(self): pass
 
-  def graph(self, adic: Optional[Union[Triad, Dyad]]):
+  def graph(self, adic: Optional[Union[Triplet, Duplet]]):
     pass

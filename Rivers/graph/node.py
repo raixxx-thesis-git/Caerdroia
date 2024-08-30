@@ -2,19 +2,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
 from typing import List, Any, Tuple
-from DAGForger.forger import Forger
+from Rivers.system import System
 
 if TYPE_CHECKING:
-  from DAGForger.dag.dag_node import DAGNode
-  from DAGForger.dag import Triad, Dyad
+  from Rivers.graph.node import Node
+  from Rivers.graph import Triplet, Duplet
 
 import cupy
 
-class DAGNodeError(Exception):
+class NodeError(Exception):
   def __init__(self, msg):
     super().__init__(msg)
 
-class DAGNode(Forger):
+class Node(System):
   def __init__(self, tensor: ndarray | List[Any], 
                name: str = None, 
                parent: Tuple[int|None, int|None] = (None, None), 
@@ -28,7 +28,7 @@ class DAGNode(Forger):
       self.tensor: ndarray = tensor
     elif type(tensor) == list or type(tensor) == float: 
       self.tensor: ndarray = cupy.array(tensor)
-    else: raise DAGNodeError('Unknown tensor.')
+    else: raise NodeError('Unknown tensor.')
 
     super().__init__()
     self.name = name
@@ -40,10 +40,10 @@ class DAGNode(Forger):
     self.is_constant = is_constant
     self.updated = False
     self.node_type = node_type
-    self.adic: Optional[Union[Triad, Dyad]] = None
+    self.adic: Optional[Union[Triplet, Duplet]] = None
   
   def __repr__(self) -> str:
-    return (f'DAGNode\nName:{self.name}\n'
+    return (f'Node\nName:{self.name}\n'
             f'Memory:{id(self)}\n'
             f'is_weight:{self.is_weight}\n'
             f'is_constant:{self.is_constant}\n'
@@ -51,5 +51,5 @@ class DAGNode(Forger):
 
   @property
   def T(self):
-    return DAGNode(self.tensor.T, name=f'{self.name}.T')
+    return Node(self.tensor.T, name=f'{self.name}.T')
 

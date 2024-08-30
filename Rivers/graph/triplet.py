@@ -2,41 +2,41 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, Union, Optional, List
 from copy import deepcopy
 if TYPE_CHECKING:
-  from DAGForger import DAGNode
-  from DAGForger.dag import Dyad
+  from Rivers import Node
+  from Rivers.graph import Duplet
 
-class Triad():
-  def __init__(self, l_operand: DAGNode, r_operand: DAGNode, 
-               outcome: DAGNode, operator: str) -> None:
+class Triplet():
+  def __init__(self, l_operand: Node, r_operand: Node, 
+               outcome: Node, operator: str) -> None:
     self.l = l_operand
     self.r = r_operand
     self.o = outcome
     self.operator = operator
     self.touched = False
 
-  def set_next(self, next_adic: Union[Triad, Dyad]) -> None:
+  def set_next(self, next_adic: Union[Triplet, Duplet]) -> None:
     self.next = next_adic
   
-  def set_prev(self, prev_adics: Tuple[Optional[Union[Triad, Dyad]]]) -> None:
+  def set_prev(self, prev_adics: Tuple[Optional[Union[Triplet, Duplet]]]) -> None:
     self.prev = prev_adics
 
-  # def get_prev(self) -> Tuple[Optional[Union[Triad, Dyad]]]:
+  # def get_prev(self) -> Tuple[Optional[Union[Triplet, Duplet]]]:
   #   return self.prev
   
-  # def get_next(self) -> Union[Triad, Dyad]:
+  # def get_next(self) -> Union[Triplet, Duplet]:
   #   return self.next
   
   def get_operator(self) -> str:
     return self.operator
   
-  def get_outcome(self) -> DAGNode:
+  def get_outcome(self) -> Node:
     return self.o
   
   def __repr__(self) -> str:
-    return f'Triad({self.l.name}, {self.r.name}, {self.o.name}; {self.operator})'
+    return f'Triplet({self.l.name}, {self.r.name}, {self.o.name}; {self.operator})'
   
-  def propagate(self, passed_adics: List[Union[Triad, Dyad]]=[], bonds: List[Tuple[Union[Triad, Dyad]]]=[], 
-                checkpoints: List[Optional[Union[Triad, Dyad]]]=[], from_jump: bool=False):
+  def propagate(self, passed_adics: List[Union[Triplet, Duplet]]=[], bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
+                checkpoints: List[Optional[Union[Triplet, Duplet]]]=[], from_jump: bool=False):
     passed_adics = deepcopy(passed_adics)
     checkpoints = deepcopy(checkpoints)
     bonds = deepcopy(bonds)

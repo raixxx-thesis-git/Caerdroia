@@ -5,19 +5,19 @@ from cupy import ndarray
 import cupy
 
 if TYPE_CHECKING:
-  from DAGForger import DAGNode
+  from Rivers import Node
 
 class BackwardMath():
   def __init__(self): pass
 
-  def get_attributes(self, var: DAGNode) -> Tuple[ndarray, ndarray|None, ndarray, str]:
-    child: DAGNode = var.child
+  def get_attributes(self, var: Node) -> Tuple[ndarray, ndarray|None, ndarray, str]:
+    child: Node = var.child
     node_type = var.node_type
 
     if node_type == 'p':
-      partner: DAGNode = var.child.parent[1]
+      partner: Node = var.child.parent[1]
     elif node_type == 's':
-      partner: DAGNode = var.child.parent[0]
+      partner: Node = var.child.parent[0]
  
     prev_grad: ndarray = cupy.array([[1.]])
     A: ndarray = var.tensor
@@ -30,7 +30,7 @@ class BackwardMath():
 
     return A, B, prev_grad, node_type
 
-  def grad_for_matmul(self, var: DAGNode) -> ndarray:
+  def grad_for_matmul(self, var: Node) -> ndarray:
     _, B, prev_grad, node_type = self.get_attributes(var)
 
     if node_type == 'p':
@@ -38,7 +38,7 @@ class BackwardMath():
     elif node_type == 's':
       return B.T @ prev_grad
     
-  def grad_for_reduce_sum(self, var: DAGNode) -> ndarray:
+  def grad_for_reduce_sum(self, var: Node) -> ndarray:
     A, _, prev_grad, _ = self.get_attributes(var)
 
     if ((A.shape[0] != 1 and A.shape[1] == prev_grad.shape[1]) or 
@@ -48,7 +48,7 @@ class BackwardMath():
     print(f'WARNING: Tensor {var.name} does not have a gradient!')
     print(f'Your expression might be unsupported!')
 
-  def grad_for_add(self, var: DAGNode) -> ndarray:
+  def grad_for_add(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
 
     if (A.shape == B.shape) or (A.shape[0] != 1 and A.shape[1] == B.shape[1]):
@@ -62,7 +62,7 @@ class BackwardMath():
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
     
-  def grad_for_sub(self, var: DAGNode) -> ndarray:
+  def grad_for_sub(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
 
     if A.shape == B.shape and node_type == 'p':
@@ -76,7 +76,7 @@ class BackwardMath():
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
 
-  def grad_for_truediv(self, var: DAGNode) -> ndarray:
+  def grad_for_truediv(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
     
     if (A.shape == B.shape or B.shape == ()) and node_type == 'p':
@@ -90,7 +90,7 @@ class BackwardMath():
     print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported!')
 
-  def grad_for_mul(self, var: DAGNode) -> ndarray:
+  def grad_for_mul(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
     print('xxx', B)
     if A.shape == B.shape or B.shape == ():
@@ -100,20 +100,20 @@ class BackwardMath():
     print(f'WARNINGx: Tensor {var.name} with node_type {node_type} does not have a gradient!')
     print(f'Your expression might be unsupported! ')
 
-  def grad_for_pow(self, var: DAGNode) -> ndarray:
+  def grad_for_pow(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
 
     # if A^B = C where A is R^{MxN} and B is R^{1x1}
     return B * A**(B - 1) * prev_grad
   
-  def grad_for_log(self, var: DAGNode) -> ndarray:
+  def grad_for_log(self, var: Node) -> ndarray:
     A, _, prev_grad, _ = self.get_attributes(var)
     basis = var.temp_state_log_basis
     
     # if log(A) = C where A is R^{MxN}
     return (1/cupy.log(basis)) * prev_grad / A
   
-  def grad_for_abs(self, var: DAGNode) -> ndarray:
+  def grad_for_abs(self, var: Node) -> ndarray:
     A, _, prev_grad, _ = self.get_attributes(var)
 
     # if |A| = C where A is R^{MxN}
