@@ -43,11 +43,28 @@ def complete_adic_func(l_operand: Node, r_operand: Optional[Node],
   outcome_node.adic = adic
   return outcome_node
 
+def secure_operands(l_operand: Union[Node, float], r_operand: Union[Node, float]):
+  return secure_type(l_operand), secure_type(r_operand)
+
 def node_add(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
-  l_operand = secure_type(l_operand)
-  r_operand = secure_type(r_operand)
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
   outcome = operator.add(l_operand.tensor, r_operand. tensor)
   return complete_adic_func(l_operand, r_operand, '+', outcome, name)
+
+def node_sub(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
+  outcome = operator.sub(l_operand.tensor, r_operand. tensor)
+  return complete_adic_func(l_operand, r_operand, '-', outcome, name)
+
+def node_mul(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
+  outcome = operator.mul(l_operand.tensor, r_operand. tensor)
+  return complete_adic_func(l_operand, r_operand, '*', outcome, name)
+
+def node_div(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
+  outcome = operator.truediv(l_operand.tensor, r_operand. tensor)
+  return complete_adic_func(l_operand, r_operand, '/', outcome, name)
 
 def node_ln(l_operand: Union[Node, float], name: str) -> Node:
   l_operand = secure_type(l_operand)
