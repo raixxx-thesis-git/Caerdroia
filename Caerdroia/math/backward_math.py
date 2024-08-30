@@ -5,7 +5,7 @@ from cupy import ndarray
 import cupy
 
 if TYPE_CHECKING:
-  from Rivers import Node
+  from Caerdroia import Node
 
 class BackwardMath():
   def __init__(self): pass

@@ -6,7 +6,7 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from Rivers import Node
+  from Caerdroia import Node
 
 
 class TensorMathError(Exception):

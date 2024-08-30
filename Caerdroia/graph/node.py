@@ -2,11 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
 from typing import List, Any, Tuple
-from Rivers.system import System
+from Caerdroia.system import System
 
 if TYPE_CHECKING:
-  from Rivers.graph.node import Node
-  from Rivers.graph import Triplet, Duplet
+  from Caerdroia.graph.node import Node
+  from Caerdroia.graph import Triplet, Duplet
 
 import cupy
 

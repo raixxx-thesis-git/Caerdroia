@@ -1,7 +1,7 @@
 from __future__ import annotations
-from Rivers.math import ForwardMath
-from Rivers.graph import Triad, Duplet
-from Rivers.system import secure_type
+from Caerdroia.math import ForwardMath
+from Caerdroia.graph import Triplet, Duplet
+from Caerdroia.system import secure_type
 from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
 
@@ -9,11 +9,11 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from Rivers import Node
+  from Caerdroia import Node
 
 def complete_adic_func(l_operand: Node, r_operand: Optional[Node], 
                        operator: str, outcome: ndarray, name: str):
-  from Rivers import Node
+  from Caerdroia import Node
   outcome_node = Node(outcome, name=name)
 
   if r_operand == None:
@@ -28,7 +28,7 @@ def complete_adic_func(l_operand: Node, r_operand: Optional[Node],
       l_operand.adic.set_next(adic)
   else:
     # create a Duplet T[n](L, O; op)
-    adic = Triad(l_operand, r_operand, outcome_node, operator)
+    adic = Triplet(l_operand, r_operand, outcome_node, operator)
 
     # connect T[n] with T0[n-1] and T1[n-1]
     adic.set_prev((l_operand.adic, r_operand.adic))

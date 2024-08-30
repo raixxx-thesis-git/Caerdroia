@@ -1,8 +1,8 @@
 autograd.ipynb
 venv/
-Rivers/__pycache__
-Rivers/system/__pycache__
-Rivers/graph/__pycache__
-Rivers/math/__pycache__
+Caerdroia/__pycache__
+Caerdroia/system/__pycache__
+Caerdroia/graph/__pycache__
+Caerdroia/math/__pycache__
 
 # git rm -r --cached .

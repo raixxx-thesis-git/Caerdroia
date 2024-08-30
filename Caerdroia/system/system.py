@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List
 from cupy import ndarray
-from Rivers.system import secure_type
-from Rivers.math import ForwardMath, BackwardMath
-from Rivers.graph import Triad, Duplet
+from Caerdroia.system import secure_type
+from Caerdroia.math import ForwardMath, BackwardMath
+from Caerdroia.graph import Triplet, Duplet
 
 if TYPE_CHECKING:
-  from Rivers import Node
+  from Caerdroia import Node
 
 import cupy
 
@@ -28,7 +28,7 @@ class System(ForwardMath, BackwardMath):
   def complete_adic(self: Node, coop: Node | None, operation: str, 
                     outcome: ndarray) -> Node:
     # import Node module is put here to avoid a circular import.
-    from Rivers import Node
+    from Caerdroia import Node
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -39,10 +39,10 @@ class System(ForwardMath, BackwardMath):
       adic = Duplet(self, outcome_node, operator)
       adic.set_prev(self.adic)
     elif operation_flag == 'r':
-      adic = Triad(coop, self, outcome_node, operator)
+      adic = Triplet(coop, self, outcome_node, operator)
       adic.set_prev((coop.adic, self.adic))
     elif operation_flag == '.':
-      adic = Triad(self, coop, outcome_node, operator)
+      adic = Triplet(self, coop, outcome_node, operator)
       adic.set_prev((self.adic, coop.adic))
 
     outcome_node.adic = adic
@@ -52,7 +52,7 @@ class System(ForwardMath, BackwardMath):
 
   def make_child(self, partner: Node | None, operation: str, value: ndarray) -> Node:
     # import Node module is put here to avoid a circular import.
-    from Rivers import Node
+    from Caerdroia import Node
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -81,7 +81,7 @@ class System(ForwardMath, BackwardMath):
 
   def partner_assure_Node(self, partner: Node | float) -> Node:
     # import Node module is put here to avoid a circular import.
-    from Rivers import Node
+    from Caerdroia import Node
 
     if type(partner) == float:
       partner = Node(partner, name=str(partner), is_constant=True)

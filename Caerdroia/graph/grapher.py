@@ -3,7 +3,7 @@ from graphviz import Digraph
 from typing import TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:
-  from Rivers.graph import Triplet, Duplet
+  from Caerdroia.graph import Triplet, Duplet
 
 class Grapher():
   def __init__(self): pass
