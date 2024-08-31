@@ -29,52 +29,52 @@ class BackwardMath():
       B = partner.tensor
 
     return A, B, prev_grad, node_type
+    
+  def grad_for_matmul(self, L: ndarray, R: ndarray, prev_grad: ndarray) -> ndarray:
+    grad_L = prev_grad @ R.T
+    grad_R = L.T @ prev_grad
+    return (grad_L, grad_R)
+    
+  def grad_for_reduce_sum(self, L: ndarray, prev_grad: ndarray) -> ndarray:
+    if ((L.shape[0] != 1 and L.shape[1] == prev_grad.shape[1]) or 
+        (L.shape[0] == 1 and L.shape[0] == prev_grad.shape[0])):
+      grad_L = cupy.ones(shape=L.shape) * prev_grad
 
-  def grad_for_matmul(self, var: Node) -> ndarray:
-    _, B, prev_grad, node_type = self.get_attributes(var)
+    return grad_L
 
-    if node_type == 'p':
-      return prev_grad @ B.T
-    elif node_type == 's':
-      return B.T @ prev_grad
-    
-  def grad_for_reduce_sum(self, var: Node) -> ndarray:
-    A, _, prev_grad, _ = self.get_attributes(var)
+  def grad_for_add(self, L: ndarray, R: ndarray, prev_grad: ndarray) -> ndarray:
+    equal_space_operands = L.shape == R.shape
+    L_broadcast = (L.shape[0] == 1 and R.shape[0] != 1) and (L.shape[1] == R.shape[1])
+    R_broadcast = (L.shape[0] != 1 and R.shape[0] == 1) and (L.shape[1] == R.shape[1])
 
-    if ((A.shape[0] != 1 and A.shape[1] == prev_grad.shape[1]) or 
-        (A.shape[0] == 1 and A.shape[0] == prev_grad.shape[0])):
-      return cupy.ones(shape=A.shape) * prev_grad
-    
-    print(f'WARNING: Tensor {var.name} does not have a gradient!')
-    print(f'Your expression might be unsupported!')
+    if equal_space_operands:
+      grad_L = prev_grad
+      grad_R = prev_grad
+    elif L_broadcast:
+      grad_L = cupy.sum(prev_grad, axis=0, keepdims=True)
+      grad_R = prev_grad
+    elif R_broadcast:
+      grad_L = prev_grad
+      grad_R = cupy.sum(prev_grad, axis=0, keepdims=True)
 
-  def grad_for_add(self, var: Node) -> ndarray:
-    A, B, prev_grad, node_type = self.get_attributes(var)
+    return (grad_L, grad_R)
+    
+  def grad_for_sub(self, L: ndarray, R: ndarray, prev_grad: ndarray) -> ndarray:
+    equal_space_operands = L.shape == R.shape
+    L_broadcast = (L.shape[0] == 1 and R.shape[0] != 1) and (L.shape[1] == R.shape[1])
+    R_broadcast = (L.shape[0] != 1 and R.shape[0] == 1) and (L.shape[1] == R.shape[1])
 
-    if (A.shape == B.shape) or (A.shape[0] != 1 and A.shape[1] == B.shape[1]):
-      # if A + B = C or B + A = C where A is R^{MxN} and B is R^{MxN} or R^{1xN}
-      return prev_grad
-    
-    elif A.shape[0] == 1 and A.shape[1] == B.shape[1]:
-      # if A + B = C or B + A = C where A is R^{1xN} and B is R^{MxN}
-      return cupy.sum(prev_grad, axis=0, keepdims=True)
-    
-    print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
-    print(f'Your expression might be unsupported!')
-    
-  def grad_for_sub(self, var: Node) -> ndarray:
-    A, B, prev_grad, node_type = self.get_attributes(var)
+    if equal_space_operands:
+      grad_L = prev_grad
+      grad_R = -1.0 * prev_grad
+    elif L_broadcast:
+      grad_L = cupy.sum(prev_grad, axis=0, keepdims=True)
+      grad_R = -1.0 * prev_grad
+    elif R_broadcast:
+      grad_L = prev_grad
+      grad_R = -1.0 * cupy.sum(prev_grad, axis=0, keepdims=True)
 
-    if A.shape == B.shape and node_type == 'p':
-      # if A - B = C where A is R^{MxN} and B is R^{MxN}
-      return prev_grad
-    
-    elif A.shape == B.shape and node_type == 's':
-      # if B - A = C where A is R^{MxN} and B is R^{MxN}
-      return -1 * prev_grad
-    
-    print(f'WARNING: Tensor {var.name} with node_type {node_type} does not have a gradient!')
-    print(f'Your expression might be unsupported!')
+    return (grad_L, grad_R)
 
   def grad_for_truediv(self, var: Node) -> ndarray:
     A, B, prev_grad, node_type = self.get_attributes(var)
@@ -118,5 +118,6 @@ class BackwardMath():
 
     # if |A| = C where A is R^{MxN}
     return (A/cupy.absolute(A)) * prev_grad
+  
 
 # future: skip connections

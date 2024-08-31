@@ -1,6 +1,5 @@
 from __future__ import annotations
-from Caerdroia.math import ForwardMath
-from Caerdroia.graph import Triplet, Duplet
+
 from Caerdroia.system import secure_type
 from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
@@ -12,8 +11,9 @@ if TYPE_CHECKING:
   from Caerdroia import Node
 
 def complete_adic_func(l_operand: Node, r_operand: Optional[Node], 
-                       operator: str, outcome: ndarray, name: str):
+                       operator: str, outcome: ndarray, name: str) -> Node:
   from Caerdroia import Node
+  from Caerdroia.graph import Triplet, Duplet
   outcome_node = Node(outcome, name=name)
 
   if r_operand == None:
@@ -48,26 +48,40 @@ def secure_operands(l_operand: Union[Node, float], r_operand: Union[Node, float]
 
 def node_add(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
   l_operand, r_operand = secure_operands(l_operand, r_operand)
-  outcome = operator.add(l_operand.tensor, r_operand. tensor)
+  outcome = operator.add(l_operand.tensor, r_operand.tensor)
   return complete_adic_func(l_operand, r_operand, '+', outcome, name)
 
 def node_sub(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
   l_operand, r_operand = secure_operands(l_operand, r_operand)
-  outcome = operator.sub(l_operand.tensor, r_operand. tensor)
+  outcome = operator.sub(l_operand.tensor, r_operand.tensor)
   return complete_adic_func(l_operand, r_operand, '-', outcome, name)
 
 def node_mul(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
   l_operand, r_operand = secure_operands(l_operand, r_operand)
-  outcome = operator.mul(l_operand.tensor, r_operand. tensor)
+  outcome = operator.mul(l_operand.tensor, r_operand.tensor)
   return complete_adic_func(l_operand, r_operand, '*', outcome, name)
 
 def node_div(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
   l_operand, r_operand = secure_operands(l_operand, r_operand)
-  outcome = operator.truediv(l_operand.tensor, r_operand. tensor)
+  outcome = operator.truediv(l_operand.tensor, r_operand.tensor)
   return complete_adic_func(l_operand, r_operand, '/', outcome, name)
+
+def node_matmul(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
+  outcome = l_operand.tensor @ r_operand. tensor
+  return complete_adic_func(l_operand, r_operand, '@', outcome, name)
+
+def node_pow(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str) -> Node:
+  l_operand, r_operand = secure_operands(l_operand, r_operand)
+  outcome = l_operand.tensor ** r_operand.tensor
+  return complete_adic_func(l_operand, r_operand, '**', outcome, name)
+
+def node_redsum(l_operand: Union[Node, float], axis: int, name: str)-> Node:
+  l_operand = secure_type(l_operand)
+  outcome = cupy.sum(l_operand.tensor, axis=axis, keepdims=True)
+  return complete_adic_func(l_operand, None, 'redsum', outcome, name)
 
 def node_ln(l_operand: Union[Node, float], name: str) -> Node:
   l_operand = secure_type(l_operand)
   outcome = cupy.log(l_operand.tensor)
   return complete_adic_func(l_operand, None, 'ln', outcome, name)
-
