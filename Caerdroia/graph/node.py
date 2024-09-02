@@ -6,7 +6,7 @@ from Caerdroia.system import System
 
 if TYPE_CHECKING:
   from Caerdroia.graph.node import Node
-  from Caerdroia.graph import Triplet, Duplet
+  from Caerdroia.graph import Triplet, Duplet, Dynamic
 
 import cupy
 
@@ -41,6 +41,12 @@ class Node(System):
             f'is_constant:{self.is_constant}\n'
             f'data_shape:{cupy.shape(self.tensor)}')
 
+  def set_adic(self, adic: Union[Duplet, Triplet, Dynamic]) -> None:
+    self.adic = adic
+  
+  def get_adic(self) -> Union[Duplet, Triplet, Dynamic]:
+    return self.adic
+  
   def get_is_constant(self) -> bool:
     return self.is_constant
   
