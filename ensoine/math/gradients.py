@@ -4,7 +4,7 @@ from cupy import ndarray
 import cupy
 
 if TYPE_CHECKING:
-  from Caerdroia.graph import Node
+  from ensoine.graph import Node
 
 def consider(grad: ndarray, is_constant: bool) -> bool:
   return grad if not is_constant else None

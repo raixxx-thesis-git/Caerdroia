@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union
-from Caerdroia.math import BackwardMath
-from Caerdroia.math import gradients
+from ensoine.math import BackwardMath
+from ensoine.math import gradients
 if TYPE_CHECKING:
-  from Caerdroia.graph import Duplet, Triplet
+  from ensoine.graph import Duplet, Triplet
 
 GRADIENT_METHODS = {
   '+': gradients.grad_for_add,
@@ -18,7 +18,7 @@ GRADIENT_METHODS = {
 }
 
 def compute_grad(adic: Union[Duplet, Triplet]):
-  from Caerdroia.graph import Duplet, Triplet
+  from ensoine.graph import Duplet, Triplet
 
   operation = adic.get_operator()
   prev_grad = adic.get_outcome().get_last_gradient()

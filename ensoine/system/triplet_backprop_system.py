@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Tuple, Optional
-from Caerdroia.system import compute_grad
+from ensoine.system import compute_grad
 
 import cupy
 
 if TYPE_CHECKING:
-  from Caerdroia.graph import Duplet, Triplet
+  from ensoine.graph import Duplet, Triplet
 
 class TripletBackpropSystem():
   def __init__(self): pass
@@ -17,19 +17,26 @@ class TripletBackpropSystem():
     self: Triplet
     return self.prev[0] != None and self.prev[1] != None
   
-  def end_triplet(self) -> bool:
+  def end_triplet(self, interrupts: List[Union[Duplet, Triplet, None]]) -> bool:
     '''
     when T[n,...] is connected to T[n+1,n,...] and T[n+1,...] but T[n+1,n,...] 
-    and T[n+1,...] are None. '...' is optional.
+    and T[n+1,...] are None or interrupt(s). '...' is optional.
     '''
     self: Triplet
-    return self.prev[0] == None and self.prev[1] == None
+    prev0_is_none = self.prev[0] == None
+    prev1_is_none = self.prev[1] == None
+
+    prev0_is_interrupt = self.prev[0] in interrupts
+    prev1_is_interrupt = self.prev[1] in interrupts
+
+    return (prev0_is_interrupt or prev0_is_none) and (prev1_is_interrupt or prev1_is_none)
   
   def propagate(self, 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
                 bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
                 checkpoints: List[Optional[Union[Triplet, Duplet]]]=[], 
-                from_leap: bool=False):
+                from_leap: bool=False,
+                interrupts: List[Union[Duplet, Triplet, None]]=[]):
     self: Triplet
     passed_adics.append(self)
 
@@ -42,7 +49,7 @@ class TripletBackpropSystem():
       '''
       checkpoints.append(self)
     
-    if self.end_triplet() and len(checkpoints) != 0:
+    if self.end_triplet(interrupts) and len(checkpoints) != 0:
       '''
       if current T is T[n,a,...], leap to T[a,...]
       '''
@@ -50,7 +57,7 @@ class TripletBackpropSystem():
       return leap_to.propagate(passed_adics, bonds, checkpoints, True)
     
     if not from_leap:
-      if self.end_triplet():
+      if self.end_triplet(interrupts):
         '''
         by reaching this point means that the adic is T[n]. T[n+1,n] and T[n+1]
         are None.

@@ -1,9 +1,12 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Union
-from Caerdroia.graph import Node
+from typing import TYPE_CHECKING, List, Union, Tuple
+from ensoine.graph import Node
 from cupy import ndarray
 import cupy
 import re
+
+if TYPE_CHECKING:
+  from ensoine.graph import Duplet, Triplet
 
 def or_(param0: str, param1: str) -> ndarray:
   param0 = re.sub(r'(\[\d+\])', r'vars\1.tensor', param0)
@@ -28,7 +31,7 @@ class Dynamic():
       condition = eval(condition)
       indices = cupy.argwhere(condition)
       replacement = map.tensor
-      
+    
       whiteboard[indices[:,0], indices[:,1]] = replacement[indices[:,0], indices[:,1]]
     
     self.tensor = whiteboard
@@ -43,12 +46,12 @@ class Dynamic():
     new_node.set_adic(self)
     return new_node
 
-  def get_prev(self):
+  def get_prev(self) -> Tuple[Union[Duplet, Triplet, None]]:
     return self.prev
 
   def __repr__(self):
     return_string = 'Dynamic('
     for prev_name in self.prev_names:
-      return_string += prev_name + ','
-    return_string += f'{self.name})'
+      return_string += prev_name + ', '
+    return_string += f'{self.name}; multi_ops)'
     return return_string
