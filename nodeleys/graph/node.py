@@ -57,10 +57,20 @@ class Node(System):
 
   def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
     try:
+      '''
+      virtual_grad_pool holds the gradient pools of each corresponding given conditions
+      (virtual sessions).
+      '''
       self.virtual_grad_pool[idx].append(grad)
     except AttributeError:
+      '''
+      This error is expected when virtual_grad_pool has not been initialized.
+      '''
       self.virtual_grad_pool: List[List[ndarray]] = [[grad]]
     except IndexError:
+      '''
+      This error is expected everytime a new virtual session is executed.
+      '''
       self.virtual_grad_pool.append([grad])
 
   def get_last_virutal_gradient(self, idx: int) -> None:

@@ -21,7 +21,24 @@ def compute_grad(adic: Union[Duplet, Triplet], is_virtually: bool=False, idx: in
   from nodeleys.graph import Duplet, Triplet
 
   operation = adic.get_operator()
-  prev_grad = adic.get_outcome().get_last_gradient()
+
+  '''
+  Suppose we have a node Nx represented by an adic A[x,...], a node Ny represnted
+  by A[y,...], and there is a direct connection between these two adics, 
+  A[x,...] -> A[y,...] (forward propagation perspective). To obtain the gradient for
+  Nx, we require the gradient of Ny. Considering there are intermediate paths where 
+  these adics were updated more than once accordingly, the chain rule obliges us to
+  isolate each gradient flow from each path.
+
+  To be more concrete, let A[z,...] has S ways to reach A[y,...] -> A[x,...]. For each
+  S, the gradient flow is isolated from one to the others. These gradients are pooled 
+  in a list structure. Therefore, during any S, to update Nx, we require the gradient
+  of Ny accordingly. Yet since the gradient of Ny is a list, we take the last gradient.
+  '''
+  if not is_virtually:
+    prev_grad = adic.get_outcome().get_last_gradient()
+  else:
+    prev_grad = adic.get_outcome().get_last_virutal_gradient(idx)
   
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
