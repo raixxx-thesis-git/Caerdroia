@@ -6,7 +6,7 @@ from nodeleys.system import System
 
 if TYPE_CHECKING:
   from nodeleys.graph.node import Node
-  from nodeleys.graph import Triplet, Duplet, Dynamic
+  from nodeleys.graph import Triplet, Duplet, Virtual
 
 import cupy
 
@@ -33,6 +33,7 @@ class Node(System):
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
     self.grad_pool = []
+    # self.virtual_grad_pool = []
   
   def __repr__(self) -> str:
     return (f'Node\nName:{self.name}\n'
@@ -41,10 +42,10 @@ class Node(System):
             f'is_constant:{self.is_constant}\n'
             f'data_shape:{cupy.shape(self.tensor)}')
 
-  def set_adic(self, adic: Union[Duplet, Triplet, Dynamic]) -> None:
+  def set_adic(self, adic: Union[Duplet, Triplet, Virtual]) -> None:
     self.adic = adic
   
-  def get_adic(self) -> Union[Duplet, Triplet, Dynamic]:
+  def get_adic(self) -> Union[Duplet, Triplet, Virtual]:
     return self.adic
   
   def get_is_constant(self) -> bool:
@@ -54,6 +55,17 @@ class Node(System):
     if type(grad) != type(None):
       self.grad_pool.append(grad)
 
+  def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
+    try:
+      self.virtual_grad_pool[idx].append(grad)
+    except AttributeError:
+      self.virtual_grad_pool: List[List[ndarray]] = [[grad]]
+    except IndexError:
+      self.virtual_grad_pool.append([grad])
+
+  def get_last_virutal_gradient(self, idx: int) -> None:
+    return self.virtual_grad_pool[idx][-1]
+  
   def get_last_gradient(self) -> None:
     return self.grad_pool[-1]
   

@@ -29,7 +29,6 @@ class TripletBackpropSystem():
     return prev0_is_none and prev1_is_none
   
   def is_an_interrupt(self: Triplet, interrupts: Set[Union[Duplet, Triplet, None]]):
-    print(self in interrupts)
     return self in interrupts
   
   def propagate(self: Triplet, 
@@ -37,13 +36,15 @@ class TripletBackpropSystem():
                 bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
                 checkpoints: List[Optional[Union[Triplet, Duplet]]]=[], 
                 from_leap: bool=False,
-                interrupts: Set[Union[Duplet, Triplet, None]]={}):
+                interrupts: Set[Union[Duplet, Triplet, None]]={},
+                is_virtually: bool=False,
+                idx: int=-1):
     passed_adics.append(self)
 
     self_is_an_interrupt = self.is_an_interrupt(interrupts)
     
     if not from_leap and not self_is_an_interrupt: 
-      compute_grad(self)
+      compute_grad(self, is_virtually, idx)
 
     is_end = self.end_triplet() or self_is_an_interrupt
   

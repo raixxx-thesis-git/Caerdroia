@@ -17,7 +17,7 @@ GRADIENT_METHODS = {
   'redsum': gradients.grad_for_reduce_sum
 }
 
-def compute_grad(adic: Union[Duplet, Triplet]):
+def compute_grad(adic: Union[Duplet, Triplet], is_virtually: bool=False, idx: int=-1):
   from nodeleys.graph import Duplet, Triplet
 
   operation = adic.get_operator()
@@ -26,9 +26,17 @@ def compute_grad(adic: Union[Duplet, Triplet]):
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
     grad_L, grad_R = GRADIENT_METHODS[operation](l_operand, r_operand, prev_grad)
-    adic.operands_add_gradient(grad_L, grad_R)
+
+    if not is_virtually:
+      adic.operands_add_gradient(grad_L, grad_R)
+    else:
+      adic.operands_add_virtual_gradient(grad_L, grad_R, idx)
 
   elif isinstance(adic, Duplet):
     l_operand = adic.get_operand()
     grad_L = GRADIENT_METHODS[operation](l_operand, prev_grad)
-    adic.operand_add_gradient(grad_L)
+    
+    if not is_virtually:
+      adic.operand_add_gradient(grad_L)
+    else:
+      adic.operand_add_virtual_gradient(grad_L, idx)

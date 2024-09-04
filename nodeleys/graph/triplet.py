@@ -25,6 +25,10 @@ class Triplet(TripletBackpropSystem):
   def operands_add_gradient(self, grad_L: ndarray, grad_R: ndarray) -> None:
     self.l.add_gradient(grad_L)
     self.r.add_gradient(grad_R)
+
+  def operands_add_virtual_gradient(self, grad_L: ndarray, grad_R: ndarray, idx: int) -> None:
+    self.l.add_virtual_gradient(grad_L, idx)
+    self.r.add_virtual_gradient(grad_R, idx)
   
   def get_operator(self) -> str:
     return self.operator

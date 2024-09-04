@@ -18,7 +18,7 @@ def and_(param0: str, param1: str) -> ndarray:
   param1 = re.sub(r'(\[\d+\])', r'vars\1.tensor', param1)
   return f'cupy.logical_and({param0}, {param1})'
 
-class Dynamic():
+class Virtual():
   def __init__(self, vars: List[Node], maps: List[Node], conditions: List[str], name: str='') -> Node:
     vars = vars
 
@@ -51,7 +51,7 @@ class Dynamic():
     return self.prev
 
   def __repr__(self):
-    return_string = 'Dynamic('
+    return_string = 'Virtual('
     for prev_name in self.prev_names:
       return_string += prev_name + ', '
     return_string += f'{self.name}; multi_ops)'

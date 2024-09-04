@@ -22,6 +22,9 @@ class Duplet(DupletBackpropSystem):
   def operand_add_gradient(self, grad_L: ndarray) -> None:
     self.l.add_gradient(grad_L)
 
+  def operand_add_virtual_gradient(self, grad_L: ndarray, idx: int) -> None:
+    self.l.add_virtual_gradient(grad_L, idx)
+
   def get_prev(self) -> Optional[Union[Duplet, Triplet]]:
     return self.prev
 

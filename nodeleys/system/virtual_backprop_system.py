@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-  from nodeleys.graph import Duplet, Triplet, Dynamic
+  from nodeleys.graph import Duplet, Triplet, Virtual
 
 class DynamicBackpropSystem():
   def __init__(self): pass
   
-  def propagate(self: Dynamic):
+  def propagate(self: Virtual):
     for virtual_graph, conditions in (self.virtual_graphs, self.conditions):
       '''
       This is a subsystem routine. We do not pass the inherited backprop states to
@@ -19,5 +19,5 @@ class DynamicBackpropSystem():
       '''
       All of the interrupt adics are updated.
       '''
-
+      
   pass
