@@ -1,39 +1,40 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Union, Tuple, Optional
-from ensoine.system import compute_grad
+from typing import TYPE_CHECKING, List, Union, Tuple, Optional, Set
+from nodeleys.system import compute_grad
 import cupy
 
 if TYPE_CHECKING:
-  from ensoine.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet
 
 class DupletBackpropSystem:
   def __init__(self): pass
   
-  def end_duplet(self, interrupts: List[Union[Duplet, Triplet, None]]) -> bool:
+  def end_duplet(self: Duplet) -> bool:
     '''
     is true as long as the current duplet is D[n,...] and D[n+1,...] is None or
     an interrupt. '...' is optional.
     '''
-    self: Duplet
-
-    prev_is_none = self.prev == None
-    prev_is_interrupt = self.prev in interrupts
-
-    return prev_is_none or prev_is_interrupt
+    return self.prev == None
   
-  def propagate(self, 
+  def is_an_interrupt(self: Triplet, interrupts: Set[Union[Duplet, Triplet, None]]):
+    return self in interrupts
+  
+  def propagate(self: Duplet, 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
                 bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
                 checkpoints: List[Optional[Union[Triplet, Duplet]]]=[], 
                 from_leap: bool=False,
-                interrupts: List[Union[Duplet, Triplet, None]]=[]):
-    self: Duplet
+                interrupts: Set[Union[Duplet, Triplet, None]]={}):
     passed_adics.append(self)
 
-    if not from_leap:
+    self_is_an_interrupt = self.is_an_interrupt(interrupts)
+
+    if not from_leap and not self_is_an_interrupt:
       compute_grad(self)
 
-    if not self.end_duplet(interrupts):
+    is_end = self.end_duplet() or self_is_an_interrupt
+
+    if not is_end:
       '''
       This happens if the current adic D[n,...] is connected to D[n+1,...]. We move
       D[n,...] to D[n+1,...] as long as D[n+1,...] is not None.
@@ -41,16 +42,16 @@ class DupletBackpropSystem:
       new_bond = (self,self.prev)
       if new_bond not in bonds:
         bonds.append(new_bond)
-      return self.prev.propagate(passed_adics, bonds, checkpoints, False)
+      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
 
-    elif self.end_duplet(interrupts):
+    elif is_end:
       if len(checkpoints) != 0:
         '''
         This happens if the current adic is D[n,a,...]. We move D[n,a,...] to
         T[a,...].
         '''
         leap_to = checkpoints.pop()
-        return leap_to.propagate(passed_adics, bonds, checkpoints, True)
+        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts)
       
       '''
       This is executed if the current adic is D[n] and D[n+1] is None.

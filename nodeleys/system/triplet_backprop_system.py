@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, List, Tuple, Optional
-from ensoine.system import compute_grad
+from typing import TYPE_CHECKING, Union, List, Tuple, Optional, Set
+from nodeleys.system import compute_grad
 
 import cupy
 
 if TYPE_CHECKING:
-  from ensoine.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet
 
 class TripletBackpropSystem():
   def __init__(self): pass
@@ -17,7 +17,7 @@ class TripletBackpropSystem():
     self: Triplet
     return self.prev[0] != None and self.prev[1] != None
   
-  def end_triplet(self, interrupts: List[Union[Duplet, Triplet, None]]) -> bool:
+  def end_triplet(self) -> bool:
     '''
     when T[n,...] is connected to T[n+1,n,...] and T[n+1,...] but T[n+1,n,...] 
     and T[n+1,...] are None or interrupt(s). '...' is optional.
@@ -26,21 +26,26 @@ class TripletBackpropSystem():
     prev0_is_none = self.prev[0] == None
     prev1_is_none = self.prev[1] == None
 
-    prev0_is_interrupt = self.prev[0] in interrupts
-    prev1_is_interrupt = self.prev[1] in interrupts
-
-    return (prev0_is_interrupt or prev0_is_none) and (prev1_is_interrupt or prev1_is_none)
+    return prev0_is_none and prev1_is_none
   
-  def propagate(self, 
+  def is_an_interrupt(self: Triplet, interrupts: Set[Union[Duplet, Triplet, None]]):
+    print(self in interrupts)
+    return self in interrupts
+  
+  def propagate(self: Triplet, 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
                 bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
                 checkpoints: List[Optional[Union[Triplet, Duplet]]]=[], 
                 from_leap: bool=False,
-                interrupts: List[Union[Duplet, Triplet, None]]=[]):
-    self: Triplet
+                interrupts: Set[Union[Duplet, Triplet, None]]={}):
     passed_adics.append(self)
 
-    if not from_leap: compute_grad(self)
+    self_is_an_interrupt = self.is_an_interrupt(interrupts)
+    
+    if not from_leap and not self_is_an_interrupt: 
+      compute_grad(self)
+
+    is_end = self.end_triplet() or self_is_an_interrupt
   
     if self.complete_triplet() and from_leap == False:
       '''
@@ -49,21 +54,21 @@ class TripletBackpropSystem():
       '''
       checkpoints.append(self)
     
-    if self.end_triplet(interrupts) and len(checkpoints) != 0:
+    if is_end and len(checkpoints) != 0:
       '''
       if current T is T[n,a,...], leap to T[a,...]
       '''
       leap_to = checkpoints.pop()
-      return leap_to.propagate(passed_adics, bonds, checkpoints, True)
+      return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts)
     
     if not from_leap:
-      if self.end_triplet(interrupts):
+      if is_end:
         '''
         by reaching this point means that the adic is T[n]. T[n+1,n] and T[n+1]
         are None.
         '''
         return passed_adics, bonds
-  
+      
       elif self.prev[0] == None and self.prev[1] != None:
         '''
         This happens if T[n,...] = T(x, y, z, op) where x does not inherit T/D while
@@ -72,7 +77,7 @@ class TripletBackpropSystem():
         new_bond = (self, self.prev[1])
         if new_bond not in bonds:
           bonds.append(new_bond)
-        return self.prev[1].propagate(passed_adics, bonds, checkpoints, False)
+        return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
       
       elif self.prev[0] != None:
         '''
@@ -83,7 +88,7 @@ class TripletBackpropSystem():
         new_bond = (self, self.prev[0])
         if new_bond not in bonds:
           bonds.append(new_bond)
-        return self.prev[0].propagate(passed_adics, bonds, checkpoints, False)
+        return self.prev[0].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
       
     else:
       '''
@@ -94,10 +99,10 @@ class TripletBackpropSystem():
       new_bond = (self, self.prev[1])
       if new_bond not in bonds:
         bonds.append(new_bond)
-      return self.prev[1].propagate(passed_adics, bonds, checkpoints, False)
+      return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
     
   def set_as_objective(self: Triplet):
     self.get_outcome().add_gradient(cupy.array([[1.]]))
 
-  def begin_backprop(self):
-    return self.propagate([], [], [])
+  def begin_backprop(self, interrupts: List[Union[Duplet, Triplet, None]]=[]):
+    return self.propagate([], [], [], interrupts=interrupts)

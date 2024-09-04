@@ -6,7 +6,7 @@ import operator
 import cupy
 
 if TYPE_CHECKING:
-  from ensoine import Node
+  from nodeleys import Node
 
 
 class TensorMathError(Exception):

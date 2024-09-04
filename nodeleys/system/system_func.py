@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ensoine.system import secure_type
+from nodeleys.system import secure_type
 from typing import TYPE_CHECKING, Optional, Union, List
 from cupy import ndarray
 
@@ -9,12 +9,12 @@ import cupy
 import re
 
 if TYPE_CHECKING:
-  from ensoine import Node
+  from nodeleys import Node
 
 def complete_adic_func(l_operand: Node, r_operand: Optional[Node], 
                        operator: str, outcome: ndarray, name: str) -> Node:
-  from ensoine import Node
-  from ensoine.graph import Triplet, Duplet
+  from nodeleys import Node
+  from nodeleys.graph import Triplet, Duplet
   outcome_node = Node(outcome, name=name)
 
   if r_operand == None:

@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union
 from cupy import ndarray
-from ensoine.system import secure_type
-from ensoine.math import ForwardMath, BackwardMath
+from nodeleys.system import secure_type
+from nodeleys.math import ForwardMath, BackwardMath
 
 if TYPE_CHECKING:
-  from ensoine import Node
+  from nodeleys import Node
 
 import cupy
 
@@ -25,9 +25,9 @@ class System(ForwardMath, BackwardMath):
 
   def complete_adic(self: Node, coop: Node | None, operation: str, 
                     outcome: ndarray) -> Node:
-    from ensoine.graph import Triplet, Duplet
+    from nodeleys.graph import Triplet, Duplet
     # import Node module is put here to avoid a circular import.
-    from ensoine import Node
+    from nodeleys import Node
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -51,7 +51,7 @@ class System(ForwardMath, BackwardMath):
 
   def make_child(self, partner: Node | None, operation: str, value: ndarray) -> Node:
     # import Node module is put here to avoid a circular import.
-    from ensoine import Node
+    from nodeleys import Node
 
     operator = operation[:-1]
     operation_flag = operation[-1]
@@ -80,7 +80,7 @@ class System(ForwardMath, BackwardMath):
 
   def partner_assure_Node(self, partner: Node | float) -> Node:
     # import Node module is put here to avoid a circular import.
-    from ensoine import Node
+    from nodeleys import Node
 
     if type(partner) == float:
       partner = Node(partner, name=str(partner), is_constant=True)

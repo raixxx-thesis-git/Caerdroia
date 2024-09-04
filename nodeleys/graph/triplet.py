@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, Union, Optional, List
 from cupy import ndarray
-from ensoine.system import TripletBackpropSystem
+from nodeleys.system import TripletBackpropSystem
 
 if TYPE_CHECKING:
-  from ensoine import Node
-  from ensoine.graph import Duplet
+  from nodeleys import Node
+  from nodeleys.graph import Duplet
 
 class Triplet(TripletBackpropSystem):
   def __init__(self, l_operand: Node, r_operand: Node, 

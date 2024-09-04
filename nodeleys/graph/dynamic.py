@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union, Tuple
-from ensoine.graph import Node
+from nodeleys.graph import Node
 from cupy import ndarray
 import cupy
 import re
 
 if TYPE_CHECKING:
-  from ensoine.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet
 
 def or_(param0: str, param1: str) -> ndarray:
   param0 = re.sub(r'(\[\d+\])', r'vars\1.tensor', param0)
@@ -35,7 +35,8 @@ class Dynamic():
       whiteboard[indices[:,0], indices[:,1]] = replacement[indices[:,0], indices[:,1]]
     
     self.tensor = whiteboard
-    self.graphs = maps
+    self.vars = vars
+    self.virtual_graphs = maps
     self.conditions = conditions
     self.prev = tuple([var.adic for var in vars])
     self.prev_names = [var.name for var in vars]

@@ -2,11 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union
 from cupy import ndarray
 from typing import List, Any, Tuple
-from ensoine.system import System
+from nodeleys.system import System
 
 if TYPE_CHECKING:
-  from ensoine.graph.node import Node
-  from ensoine.graph import Triplet, Duplet, Dynamic
+  from nodeleys.graph.node import Node
+  from nodeleys.graph import Triplet, Duplet, Dynamic
 
 import cupy
 
