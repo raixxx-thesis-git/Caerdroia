@@ -132,3 +132,15 @@ class System(ForwardMath, BackwardMath):
   def abs(self) -> Node:
     value = self.abs_(self.tensor)
     return self.make_child(None, f'abs.', value)
+  
+  def __lt__(self: Node, val: float) -> ndarray:
+    from nodeleys.graph import Expression
+
+    data = self.tensor < val
+    return Expression(data, name=f'{self.name} < {val}')
+  
+  def __gt__(self: Node, val: float) -> ndarray:
+    from nodeleys.graph import Expression
+
+    data = self.tensor > val
+    return Expression(data, name=f'{self.name} > {val}')

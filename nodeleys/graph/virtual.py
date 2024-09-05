@@ -42,7 +42,7 @@ class Virtual():
     self.prev_names = [var.name for var in vars]
     self.name = name
 
-  def compile(self):
+  def compile(self: Virtual):
     new_node = Node(self.tensor, name=self.name)
     new_node.set_adic(self)
     return new_node
