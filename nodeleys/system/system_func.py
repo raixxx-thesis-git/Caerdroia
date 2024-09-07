@@ -87,3 +87,7 @@ def node_ln(l_operand: Union[Node, float], name: str='') -> Node:
   outcome = cupy.log(l_operand.tensor)
   return complete_adic_func(l_operand, None, 'ln', outcome, name)
 
+def node_if(domain_vars: List[Node], virtual_graphs: List[Node], conditions: List[str], name: str='') -> Node:
+  from nodeleys.graph import Virtual
+  return Virtual(domain_vars=domain_vars, virtual_graphs=virtual_graphs,
+                 conditions=conditions, name=name).compile()

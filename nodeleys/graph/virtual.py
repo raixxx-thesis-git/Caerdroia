@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union, Tuple
 from nodeleys.graph import Node
+from nodeleys.system import VirtualBackpropSystem
 from cupy import ndarray
 import cupy
 import re
@@ -18,7 +19,7 @@ def and_(param0: str, param1: str) -> ndarray:
   param1 = re.sub(r'(\[\d+\])', r'domain_vars\1.tensor', param1)
   return f'cupy.logical_and({param0}, {param1})'
 
-class Virtual():
+class Virtual(VirtualBackpropSystem):
   def __init__(self, domain_vars: List[Node], virtual_graphs: List[Node], conditions: List[str], name: str='') -> Node:
     self.mask_ids = []
 
@@ -42,7 +43,27 @@ class Virtual():
     self.prev_names = [domain_var.name for domain_var in domain_vars]
     self.name = name
 
-  def compile(self: Virtual):
+  def compile(self: Virtual) -> Node:
+    # [Explanation]
+    # The compile method MUST be called during the graph construction because this method
+    # creates a node that holds the output value of the conditional function. The concept is
+    # the same with the creation of a duplet or triplet.
+
+    # Comparison:
+    # a = node_add(b, c) 
+    #   The node_add method automatically assign a new node to <a> with the operation of <b + c>.
+    #   Concurrently, that particular node's <Node.adic> has also been allocated. Therefore
+    #   <a.adic> is a <Triplet(...)>.
+       
+    # t = Virtual([a, b], [c, d], [S0, S1]).compile()
+    #   The <Virtual(...)> constructor will operate the conditional function and store its
+    #   output in <Virtual.tensor>. The value of <a> and <b> are the dependent variables that
+    #   are created in advance. The value of <c> and <d> are the virtual graphs that is executed
+    #   based on the given conditions <S0> and <S1>. By default, without calling the <Virtual.compile()> 
+    #   method, a node will not be constructed and the virtual graphs are disconnected from the proceeding
+    #   nodes in the forward propagation. To fix this, <Virtual.compile()> method is called. The output
+    #   node adic, <Virtual.o.adic> is a <Virtual(...)>.
+
     new_node = Node(self.tensor, name=self.name)
     new_node.set_adic(self)
     self.o = new_node
@@ -52,7 +73,7 @@ class Virtual():
     return self.prev
 
   def get_outcome(self, idx: int) -> Node:
-    return self.virtual_graphs[idx]
+    return self.o
 
   def __repr__(self):
     return_string = 'Virtual('

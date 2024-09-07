@@ -3,5 +3,6 @@ from .system import System
 from .grad_system import compute_grad
 from .duplet_backprop_system import DupletBackpropSystem
 from .triplet_backprop_system import TripletBackpropSystem
+from .virtual_backprop_system import VirtualBackpropSystem
 from .system_func import *
 

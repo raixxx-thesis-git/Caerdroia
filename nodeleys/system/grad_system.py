@@ -35,13 +35,14 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
   in a list structure. Therefore, during any S, to update Nx, we require the gradient
   of Ny accordingly. Yet since the gradient of Ny is a list, we take the last gradient.
   '''
+  if isinstance(adic, Virtual):
+    adic.propagate()
+    return
 
   if not is_virtually:
     prev_grad = adic.get_outcome().get_last_gradient()
   else:
-    if isinstance(adic, Virtual):
-      prev_grad = adic.get_outcome(idx).get_last_virtual_gradient()
-    prev_grad = adic.get_outcome().get_last_virtual_gradient()
+    prev_grad = adic.get_outcome().get_last_virtual_gradient(idx)
   
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
