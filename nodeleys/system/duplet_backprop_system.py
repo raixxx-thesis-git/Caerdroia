@@ -6,7 +6,7 @@ import cupy
 if TYPE_CHECKING:
   from nodeleys.graph import Duplet, Triplet
 
-class DupletBackpropSystem:
+class DupletBackpropSystem():
   def __init__(self): pass
   
   def end_duplet(self: Duplet) -> bool:
@@ -15,9 +15,6 @@ class DupletBackpropSystem:
     an interrupt. '...' is optional.
     '''
     return self.prev == None
-  
-  def is_an_interrupt(self: Triplet, interrupts: Set[Union[Duplet, Triplet, None]]):
-    return self in interrupts
   
   def propagate(self: Duplet, 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
@@ -29,7 +26,7 @@ class DupletBackpropSystem:
                 idx: int=-1):
     passed_adics.append(self)
 
-    self_is_an_interrupt = self.is_an_interrupt(interrupts)
+    self_is_an_interrupt = self in interrupts
 
     if not from_leap and not self_is_an_interrupt:
       compute_grad(self, is_virtually, idx)

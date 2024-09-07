@@ -1,5 +1,5 @@
 from __future__ import annotations 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, Dict
 from cupy import ndarray
 from typing import List, Any, Tuple
 from nodeleys.system import System
@@ -32,8 +32,7 @@ class Node(System):
     self.operation = operation
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
-    self.grad_pool = []
-    # self.virtual_grad_pool = []
+    self.grad_pool = {}
   
   def __repr__(self) -> str:
     return (f'Node\nName:{self.name}\n'
@@ -62,18 +61,20 @@ class Node(System):
       (virtual sessions).
       '''
       self.virtual_grad_pool[idx].append(grad)
-    except AttributeError:
+    except KeyError:
       '''
       This error is expected when virtual_grad_pool has not been initialized.
       '''
-      self.virtual_grad_pool: List[List[ndarray]] = [[grad]]
-    except IndexError:
-      '''
-      This error is expected everytime a new virtual session is executed.
-      '''
-      self.virtual_grad_pool.append([grad])
+      self.virtual_grad_pool: Dict[int, List[ndarray]]
+      self.virtual_grad_pool[idx] = [grad]
 
-  def get_last_virutal_gradient(self, idx: int) -> None:
+  def sum_virtual_gradient_by_session(self, idx: int) -> None:
+    try:
+      self.virtual_grad_pool[idx] = cupy.sum(cupy.array(self.virtual_grad_pool[idx]))
+    except KeyError:
+      self.virtual_grad_pool[idx] = None
+
+  def get_last_virtual_gradient(self, idx: int) -> None:
     return self.virtual_grad_pool[idx][-1]
   
   def get_last_gradient(self) -> None:

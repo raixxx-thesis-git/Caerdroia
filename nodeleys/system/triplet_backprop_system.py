@@ -28,9 +28,6 @@ class TripletBackpropSystem():
 
     return prev0_is_none and prev1_is_none
   
-  def is_an_interrupt(self: Triplet, interrupts: Set[Union[Duplet, Triplet, None]]):
-    return self in interrupts
-  
   def propagate(self: Triplet, 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
                 bonds: List[Tuple[Union[Triplet, Duplet]]]=[], 
@@ -41,7 +38,7 @@ class TripletBackpropSystem():
                 idx: int=-1):
     passed_adics.append(self)
 
-    self_is_an_interrupt = self.is_an_interrupt(interrupts)
+    self_is_an_interrupt = self in interrupts
     
     if not from_leap and not self_is_an_interrupt: 
       compute_grad(self, is_virtually, idx)

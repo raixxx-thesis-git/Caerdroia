@@ -24,9 +24,9 @@ def complete_adic_func(l_operand: Node, r_operand: Optional[Node],
     # connect D[n] with D[n-1]
     adic.set_prev(l_operand.get_adic())
 
-    if l_operand.get_adic() != None:
-      # connect D[n-1] with D[n] if D[n-1] exists
-      l_operand.get_adic().set_next(adic)
+    # if l_operand.get_adic() != None:
+    #   # connect D[n-1] with D[n] if D[n-1] exists
+    #   l_operand.get_adic().set_next(adic)
   else:
     # create a Duplet T[n](L, O; op)
     adic = Triplet(l_operand, r_operand, outcome_node, operator)
@@ -34,12 +34,12 @@ def complete_adic_func(l_operand: Node, r_operand: Optional[Node],
     # connect T[n] with T0[n-1] and T1[n-1]
     adic.set_prev((l_operand.get_adic(), r_operand.get_adic()))
 
-    if l_operand.adic != None:
-      # connect T0[n-1] with T[n] if T0[n-1] exists
-      l_operand.get_adic().set_next(adic)
-    elif r_operand.adic != None:
-      # connect T1[n-1] with T[n] if T1[n-1] exists
-      r_operand.get_adic().set_next(adic)
+    # if l_operand.adic != None:
+    #   # connect T0[n-1] with T[n] if T0[n-1] exists
+    #   l_operand.get_adic().set_next(adic)
+    # elif r_operand.adic != None:
+    #   # connect T1[n-1] with T[n] if T1[n-1] exists
+    #   r_operand.get_adic().set_next(adic)
   
   outcome_node.set_adic(adic)
   return outcome_node

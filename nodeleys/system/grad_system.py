@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Union
 from nodeleys.math import BackwardMath
 from nodeleys.math import gradients
 if TYPE_CHECKING:
-  from nodeleys.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet, Virtual
 
 GRADIENT_METHODS = {
   '+': gradients.grad_for_add,
@@ -17,7 +17,7 @@ GRADIENT_METHODS = {
   'redsum': gradients.grad_for_reduce_sum
 }
 
-def compute_grad(adic: Union[Duplet, Triplet], is_virtually: bool=False, idx: int=-1):
+def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False, idx: int=-1):
   from nodeleys.graph import Duplet, Triplet
 
   operation = adic.get_operator()
@@ -35,10 +35,13 @@ def compute_grad(adic: Union[Duplet, Triplet], is_virtually: bool=False, idx: in
   in a list structure. Therefore, during any S, to update Nx, we require the gradient
   of Ny accordingly. Yet since the gradient of Ny is a list, we take the last gradient.
   '''
+
   if not is_virtually:
     prev_grad = adic.get_outcome().get_last_gradient()
   else:
-    prev_grad = adic.get_outcome().get_last_virutal_gradient(idx)
+    if isinstance(adic, Virtual):
+      prev_grad = adic.get_outcome(idx).get_last_virtual_gradient()
+    prev_grad = adic.get_outcome().get_last_virtual_gradient()
   
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
