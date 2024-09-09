@@ -1,0 +1,20 @@
+digraph {
+	B0 [shape=oval]
+	A0 [shape=oval]
+	Z2 [shape=oval]
+	Z1 [shape=oval]
+	Z0 [shape=oval]
+	A0 [shape=oval]
+	X0 [shape=oval]
+	B0 [shape=oval]
+	Z2 [shape=oval]
+	Z1 [shape=oval]
+	Z0 [shape=oval]
+	B0 -> A0
+	A0 -> Z2
+	Z2 -> Z1
+	Z1 -> Z0
+	A0 -> X0
+	B0 -> Z2
+	dpi=300 rankdir=LR
+}
