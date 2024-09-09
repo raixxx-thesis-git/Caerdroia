@@ -23,6 +23,7 @@ class Switch(SwitchBackpropSystem):
     self.domain = domain
     self.graphs = graphs
     self.constants = constants
+    self.prev = domain
 
     # A whiteboard is a matrix filled with zeros which will be filled by
     # the outcome of each graph according to its condition. For instance:

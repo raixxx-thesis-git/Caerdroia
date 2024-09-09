@@ -71,6 +71,7 @@ class TripletBackpropSystem():
         new_bond = (self, self.prev[1])
         if new_bond not in bonds:
           bonds.append(new_bond)
+          
         if isinstance(self.prev[1], Virtual): return self.prev[1].propagate()
         return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
