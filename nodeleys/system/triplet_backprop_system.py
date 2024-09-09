@@ -11,17 +11,15 @@ class TripletBackpropSystem():
   def __init__(self): pass
 
   def complete_triplet(self) -> bool:
-    ''' 
-    when T[n,...] is connected to T[n+1,n,...] and T[n+1,...]. 
-    '''
+    # When T[n,...] is connected to T[n+1,n,...] and T[n+1,...]. 
+
     self: Triplet
     return self.prev[0] != None and self.prev[1] != None
   
   def end_triplet(self) -> bool:
-    '''
-    when T[n,...] is connected to T[n+1,n,...] and T[n+1,...] but T[n+1,n,...] 
-    and T[n+1,...] are None or interrupt(s). '...' is optional.
-    '''
+    # When T[n,...] is connected to T[n+1,n,...] and T[n+1,...] but T[n+1,n,...] 
+    # and T[n+1,...] are None or interrupt(s). '...' is optional.
+
     self: Triplet
     prev0_is_none = self.prev[0] == None
     prev1_is_none = self.prev[1] == None
@@ -36,6 +34,8 @@ class TripletBackpropSystem():
                 interrupts: Set[Union[Duplet, Triplet, None]]={},
                 is_virtually: bool=False,
                 idx: int=-1):
+    from nodeleys.graph import Virtual, Triplet
+    from nodeleys.system import VirtualBackpropSystem
     passed_adics.append(self)
 
     self_is_an_interrupt = self in interrupts
@@ -46,58 +46,59 @@ class TripletBackpropSystem():
     is_end = self.end_triplet() or self_is_an_interrupt
   
     if self.complete_triplet() and from_leap == False:
-      '''
-      add T[n,...] as a checkpoint if T[n,...] is a complete triplet and is coming from
-      by-turns propagation (not from leap propagation).
-      '''
+      # Add T[n,...] as a checkpoint if T[n,...] is a complete triplet and is coming from
+      # by-turns propagation (not from leap propagation).
+
       checkpoints.append(self)
     
     if is_end and len(checkpoints) != 0:
-      '''
-      if current T is T[n,a,...], leap to T[a,...]
-      '''
+      # if current T is T[n,a,...], leap to T[a,...]
+
       leap_to = checkpoints.pop()
-      return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts)
+      return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
     
     if not from_leap:
       if is_end:
-        '''
-        by reaching this point means that the adic is T[n]. T[n+1,n] and T[n+1]
-        are None.
-        '''
+        # By reaching this point means that the adic is T[n]. T[n+1,n] and T[n+1]
+        # are None.
+
         return passed_adics, bonds
       
       elif self.prev[0] == None and self.prev[1] != None:
-        '''
-        This happens if T[n,...] = T(x, y, z, op) where x does not inherit T/D while
-        y inherits T/D. We move T[n,...] to T[n+1,...].
-        '''
+        # This happens if T[n,...] = T(x, y, z, op) where x does not inherit T/D while
+        # y inherits T/D. We move T[n,...] to T[n+1,...].
+
         new_bond = (self, self.prev[1])
         if new_bond not in bonds:
           bonds.append(new_bond)
-        return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
+        if isinstance(self.prev[1], Virtual): return self.prev[1].propagate()
+        return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
       elif self.prev[0] != None:
-        '''
-        This happens if T[n,...] = T(x, y, z, op) either where y does or does not inherit 
-        T/D while x inherits T/D. If y does inherit, we move T[n,...] to T[n,n+1,...]. Otherwise, we move
-        T[n,...] to T[n+1,...].
-        '''
+        # This happens if T[n,...] = T(x, y, z, op) either where y does or does not inherit 
+        # T/D while x inherits T/D. If y does inherit, we move T[n,...] to T[n,n+1,...]. Otherwise, we move
+        # T[n,...] to T[n+1,...].
+
         new_bond = (self, self.prev[0])
         if new_bond not in bonds:
           bonds.append(new_bond)
-        return self.prev[0].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
+        if isinstance(self.prev[0], Virtual): 
+          print(type(self.prev[0]))
+          return self.prev[0].propagate()
+        print(type(self.prev[0]))
+        print(isinstance(self.prev[0], Virtual))
+        return self.prev[0].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
     else:
-      '''
-      When this condition is true, T[n,...] must be T(x, y, z, op) and x and y inherit T/D. Since
-      T[n,...] is connected to T[n,n+1,...] and T[n+1,...], we move to T[n+1,...]
-      as T[n,n+1,...] has been passed.
-      '''
+      # When this condition is true, T[n,...] must be T(x, y, z, op) and x and y inherit T/D. Since
+      # T[n,...] is connected to T[n,n+1,...] and T[n+1,...], we move to T[n+1,...]
+      # as T[n,n+1,...] has been passed.
+
       new_bond = (self, self.prev[1])
       if new_bond not in bonds:
         bonds.append(new_bond)
-      return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
+      if isinstance(self.prev[1], Virtual): return self.prev[1].propagate()
+      return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
     
   def set_as_objective(self: Triplet):
     self.get_outcome().add_gradient(cupy.array([[1.]]))

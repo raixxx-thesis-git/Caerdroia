@@ -24,6 +24,7 @@ class DupletBackpropSystem():
                 interrupts: Set[Union[Duplet, Triplet, None]]={},
                 is_virtually: bool=False,
                 idx: int=-1):
+    from nodeleys.graph import Virtual
     passed_adics.append(self)
 
     self_is_an_interrupt = self in interrupts
@@ -41,7 +42,8 @@ class DupletBackpropSystem():
       new_bond = (self,self.prev)
       if new_bond not in bonds:
         bonds.append(new_bond)
-      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts)
+      if isinstance(self.prev, Virtual): return self.prev.propagate()
+      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
 
     elif is_end:
       if len(checkpoints) != 0:
@@ -50,7 +52,7 @@ class DupletBackpropSystem():
         T[a,...].
         '''
         leap_to = checkpoints.pop()
-        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts)
+        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
       '''
       This is executed if the current adic is D[n] and D[n+1] is None.

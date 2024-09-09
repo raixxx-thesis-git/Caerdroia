@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 from nodeleys.math import BackwardMath
 from nodeleys.math import gradients
+
 if TYPE_CHECKING:
   from nodeleys.graph import Duplet, Triplet, Virtual
 
@@ -18,27 +19,18 @@ GRADIENT_METHODS = {
 }
 
 def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False, idx: int=-1):
-  from nodeleys.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet, Virtual
 
   operation = adic.get_operator()
 
-  '''
-  Suppose we have a node Nx represented by an adic A[x,...], a node Ny represnted
-  by A[y,...], and there is a direct connection between these two adics, 
-  A[x,...] -> A[y,...] (forward propagation perspective). To obtain the gradient for
-  Nx, we require the gradient of Ny. Considering there are intermediate paths where 
-  these adics were updated more than once accordingly, the chain rule obliges us to
-  isolate each gradient flow from each path.
-
-  To be more concrete, let A[z,...] has S ways to reach A[y,...] -> A[x,...]. For each
-  S, the gradient flow is isolated from one to the others. These gradients are pooled 
-  in a list structure. Therefore, during any S, to update Nx, we require the gradient
-  of Ny accordingly. Yet since the gradient of Ny is a list, we take the last gradient.
-  '''
   if isinstance(adic, Virtual):
+    # Since the virtual adic has multiple outcomes, unlike triplet and duplet that can be
+    # easily obtained through <adic.get_outcome()>, therefore the we should create a sub-process
+    # where we treat the adic as a pivot. This is why the sub-process is called "virtual".
+
     adic.propagate()
     return
-
+  print('is virtually:', is_virtually)
   if not is_virtually:
     prev_grad = adic.get_outcome().get_last_gradient()
   else:

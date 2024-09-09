@@ -32,7 +32,8 @@ class Node(System):
     self.operation = operation
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
-    self.grad_pool = {}
+    self.grad_pool = []
+    self.virtual_grad_pool = {}
   
   def __repr__(self) -> str:
     return (f'Node\nName:{self.name}\n'
@@ -79,11 +80,12 @@ class Node(System):
 
       # [Admonition]
       # The summation of the gradient does NOT constitute the gradient of the node w.r.t the loss function, 
-      # but rather w.r.t the loss function taken from the virtual path (and static path if static path exists 
+      # but rather w.r.t the loss function taken from the virtual paths (and static path if static path exists 
       # before the virtual node in the backpropagation process). The actual gradient is the meshed form of
       # all virtual gradient pools from all virtual session (<idx>). The meshing process is determined by
       # <Virtual.masked_ids>.
       
+      print(self.virtual_grad_pool)
       self.virtual_grad_pool[idx] = cupy.sum(cupy.array(self.virtual_grad_pool[idx]))
 
     except KeyError:
