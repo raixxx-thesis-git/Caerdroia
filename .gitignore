@@ -5,6 +5,6 @@ nodeleys/system/__pycache__
 nodeleys/graph/__pycache__
 nodeleys/math/__pycache__
 nodeleys/graph.png
-nodeleys/graph
+nodeleys/graphx.png
 
 # git rm -r --cached .
