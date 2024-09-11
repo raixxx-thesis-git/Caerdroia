@@ -17,26 +17,29 @@ def and_(param0: str, param1: str) -> ndarray:
   return f'cupy.logical_and({param0}, {param1})'
 
 class Switch(SwitchBackpropSystem):
-  def __init__(self, domain: Node, constants: List[Node], graphs: List[Node],
+  def __init__(self, domain: Node, dependent_vars: List[Node], sub_graphs: List[Node],
                conditions: List[str], name:str='') -> None:
     self.name = name
     self.domain = domain
-    self.graphs = graphs
-    self.constants = constants
-    self.prev = domain
+    self.sub_graphs = sub_graphs
+    self.dependent_vars = dependent_vars
+    self.prev = domain.get_adic()
+    self.segregated_idxs: List[ndarray] = []
 
     # A whiteboard is a matrix filled with zeros which will be filled by
-    # the outcome of each graph according to its condition. For instance:
+    # the outcome of each graph according to its condition.
+    self.whiteboard: ndarray = cupy.zeros(shape=(domain.tensor.shape))
 
-    self.whiteboard = cupy.zeros(shape=(domain.tensor.shape))
-    for graph, condition in zip(graphs, conditions):
+    for graph, condition in zip(sub_graphs, conditions):
       condition = condition if 'cupy' in condition else condition.replace('x', 'domain.tensor')
-      print(condition)
+
       # A segregated indices are the indices of the domain tensor where its value conforms
       # with its corresponding condition. We fill the whiteboard with these particular indices.
-      
       segregated_idx = cupy.argwhere(eval(condition))
-      self.whiteboard[segregated_idx[:,0], segregated_idx[:,1]] = graph.tensor[segregated_idx[:,0], segregated_idx[:,1]]
+      self.segregated_idxs.append(segregated_idx)
+      self.whiteboard[segregated_idx[:,0], 
+                      segregated_idx[:,1]] = graph.tensor[segregated_idx[:,0], 
+                                                          segregated_idx[:,1]]
 
   def compile(self) -> Node:
     outcome = Node(self.whiteboard, name=self.name)
@@ -46,6 +49,9 @@ class Switch(SwitchBackpropSystem):
   
   def __repr__(self):
     return f'Switch({self.domain.name}, {self.o.name})'
+  
+  def get_adic_type(self) -> str:
+    return 'Switch'
 
 
     

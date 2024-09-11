@@ -24,10 +24,10 @@ class DupletBackpropSystem():
                 interrupts: Set[Union[Duplet, Triplet, None]]={},
                 is_virtually: bool=False,
                 idx: int=-1):
-    from nodeleys.graph import Virtual
+    from nodeleys.graph import Switch
     passed_adics.append(self)
 
-    self_is_an_interrupt = self in interrupts
+    self_is_an_interrupt = self.get_outcome() in interrupts
 
     if not from_leap and not self_is_an_interrupt:
       compute_grad(self, is_virtually, idx)
@@ -42,7 +42,11 @@ class DupletBackpropSystem():
       new_bond = (self,self.prev)
       if new_bond not in bonds:
         bonds.append(new_bond)
-      if isinstance(self.prev, Virtual): return self.prev.propagate()
+      if self.prev.get_adic_type() == 'Switch': 
+        return self.prev.propagate(passed_adics=passed_adics,
+                                   bonds=bonds,
+                                   checkpoints=checkpoints,
+                                   from_leap=from_leap)
       return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
 
     elif is_end:

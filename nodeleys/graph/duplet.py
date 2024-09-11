@@ -39,3 +39,6 @@ class Duplet(DupletBackpropSystem):
   
   def __repr__(self) -> str:
     return f'Duplet({self.l.name}, {self.o.name}; {self.operator})'
+  
+  def get_adic_type(self) -> str:
+    return 'Duplet'

@@ -34,11 +34,11 @@ class TripletBackpropSystem():
                 interrupts: Set[Union[Duplet, Triplet, None]]={},
                 is_virtually: bool=False,
                 idx: int=-1):
-    from nodeleys.graph import Virtual, Triplet
-    from nodeleys.system import VirtualBackpropSystem
+    from nodeleys.graph import Switch, Triplet
+    from nodeleys.system import SwitchBackpropSystem
     passed_adics.append(self)
 
-    self_is_an_interrupt = self in interrupts
+    self_is_an_interrupt = self.get_outcome() in interrupts
     
     if not from_leap and not self_is_an_interrupt: 
       compute_grad(self, is_virtually, idx)
@@ -53,7 +53,6 @@ class TripletBackpropSystem():
     
     if is_end and len(checkpoints) != 0:
       # if current T is T[n,a,...], leap to T[a,...]
-
       leap_to = checkpoints.pop()
       return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
     
@@ -61,7 +60,6 @@ class TripletBackpropSystem():
       if is_end:
         # By reaching this point means that the adic is T[n]. T[n+1,n] and T[n+1]
         # are None.
-
         return passed_adics, bonds
       
       elif self.prev[0] == None and self.prev[1] != None:
@@ -71,8 +69,12 @@ class TripletBackpropSystem():
         new_bond = (self, self.prev[1])
         if new_bond not in bonds:
           bonds.append(new_bond)
-          
-        if isinstance(self.prev[1], Virtual): return self.prev[1].propagate()
+
+        if self.prev[1].get_adic_type() == 'Switch': 
+          return self.prev[1].propagate(passed_adics=passed_adics,
+                                        bonds=bonds,
+                                        checkpoints=checkpoints,
+                                        from_leap=from_leap)
         return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
       elif self.prev[0] != None:
@@ -83,11 +85,12 @@ class TripletBackpropSystem():
         new_bond = (self, self.prev[0])
         if new_bond not in bonds:
           bonds.append(new_bond)
-        if isinstance(self.prev[0], Virtual): 
-          print(type(self.prev[0]))
-          return self.prev[0].propagate()
-        print(type(self.prev[0]))
-        print(isinstance(self.prev[0], Virtual))
+        # print(self.prev[0].get_adic_type(), is_virtually)
+        if self.prev[0].get_adic_type() == 'Switch': 
+          return self.prev[0].propagate(passed_adics=passed_adics,
+                                        bonds=bonds,
+                                        checkpoints=checkpoints,
+                                        from_leap=from_leap)
         return self.prev[0].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
       
     else:
@@ -98,7 +101,11 @@ class TripletBackpropSystem():
       new_bond = (self, self.prev[1])
       if new_bond not in bonds:
         bonds.append(new_bond)
-      if isinstance(self.prev[1], Virtual): return self.prev[1].propagate()
+      if self.prev[1].get_adic_type() == 'Switch': 
+        return self.prev[1].propagate(passed_adics=passed_adics,
+                                        bonds=bonds,
+                                        checkpoints=checkpoints,
+                                        from_leap=from_leap)
       return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
     
   def set_as_objective(self: Triplet):

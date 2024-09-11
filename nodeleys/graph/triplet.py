@@ -45,3 +45,5 @@ class Triplet(TripletBackpropSystem):
   def __repr__(self) -> str:
     return f'Triplet({self.l.name}, {self.r.name}, {self.o.name}; {self.operator})'
     
+  def get_adic_type(self) -> str:
+    return 'Triplet'

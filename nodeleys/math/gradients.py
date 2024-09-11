@@ -22,7 +22,7 @@ def grad_for_matmul(L: Node, R: Node, prev_grad: ndarray) -> ndarray:
   grad_R = consider(L.T @ prev_grad, R_is_constant)
 
   return (grad_L, grad_R)
-  
+   
 def grad_for_reduce_sum(L: Node, prev_grad: ndarray) -> ndarray:
   L, L_is_constant = L_init(L)
 
@@ -38,6 +38,7 @@ def grad_for_add(L: Node, R: Node, prev_grad: ndarray) -> ndarray:
   equal_space_operands = L.shape == R.shape
   L_broadcast = (L.shape[0] == 1 and R.shape[0] != 1) and (L.shape[1] == R.shape[1])
   R_broadcast = (L.shape[0] != 1 and R.shape[0] == 1) and (L.shape[1] == R.shape[1])
+  constant = L.shape == () 
 
   if equal_space_operands:
     grad_L = consider(prev_grad, L_is_constant)
@@ -80,6 +81,8 @@ def grad_for_div(L: Node, R: Node, prev_grad: ndarray) -> ndarray:
     grad_L = consider((1/R) * prev_grad, L_is_constant)
     grad_R = consider((-1/R**2) * cupy.sum(prev_grad * L, keepdims=True), R_is_constant)
   elif L.shape == ():
+    grad_L = consider(cupy.sum((1/R) * prev_grad, keepdims=True))
+    grad_R = consider()
     pass
 
   return (grad_L, grad_R)

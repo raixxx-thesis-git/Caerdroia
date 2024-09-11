@@ -23,14 +23,13 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
 
   operation = adic.get_operator()
 
-  if isinstance(adic, Virtual):
+  if adic.get_adic_type() == 'Switch':
     # Since the virtual adic has multiple outcomes, unlike triplet and duplet that can be
     # easily obtained through <adic.get_outcome()>, therefore the we should create a sub-process
     # where we treat the adic as a pivot. This is why the sub-process is called "virtual".
-
     adic.propagate()
     return
-  print('is virtually:', is_virtually)
+
   if not is_virtually:
     prev_grad = adic.get_outcome().get_last_gradient()
   else:

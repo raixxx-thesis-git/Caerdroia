@@ -57,19 +57,19 @@ class Node(System):
 
   def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
     try:
-      # [Explanation]
       # Virtual_grad_pool holds the gradient pools of each corresponding conditions represented
       # by <idx> (virtual sessions).
-
       self.virtual_grad_pool[idx].append(grad)
 
     except KeyError:
-      # [Explanation]
       # This error is expected when <virtual_grad_pool> has not been initialized. We initialize
       # the virtual gradient pool with a key that corresponds to the virtual session / condition (<idx>) 
       # and a value of the passed gradient.
-
       self.virtual_grad_pool: Dict[int, List[ndarray]]
+      self.virtual_grad_pool[idx] = [grad]
+
+    except AttributeError:
+      self.virtual_grad_pool = {}
       self.virtual_grad_pool[idx] = [grad]
 
   def sum_virtual_gradient_by_session(self, idx: int) -> None:
@@ -84,12 +84,13 @@ class Node(System):
       # before the virtual node in the backpropagation process). The actual gradient is the meshed form of
       # all virtual gradient pools from all virtual session (<idx>). The meshing process is determined by
       # <Virtual.masked_ids>.
-      
-      print(self.virtual_grad_pool)
-      self.virtual_grad_pool[idx] = cupy.sum(cupy.array(self.virtual_grad_pool[idx]))
+      self.virtual_grad_pool[idx] = cupy.sum(cupy.array(self.virtual_grad_pool[idx]), axis=0)
 
     except KeyError:
       self.virtual_grad_pool[idx] = None
+
+  def get_virtual_gradient_by_session(self, idx: int) -> Union[List[ndarray], ndarray]:
+    return self.virtual_grad_pool[idx]
 
   def get_last_virtual_gradient(self, idx: int) -> None:
     return self.virtual_grad_pool[idx][-1]
