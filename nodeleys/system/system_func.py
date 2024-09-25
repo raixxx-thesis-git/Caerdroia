@@ -110,10 +110,11 @@ def node_conv2d(blocks: Union[Node, ndarray], kernels: Union[Node, ndarray], str
 
   output_node = complete_adic_func(blocks, kernels, 'conv2d', outcome, name)
   output_node.assign_metadata('strides', strides)
+  print(output_node.get_metadata('strides'))
+  return output_node
 
 def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), strides: Tuple[int]=(1,1), name: str='') -> Node:
   blocks = secure_type(blocks)
-
   sub_blocks = block_stride_view(blocks=blocks.tensor, view_size=pool_size, strides=strides)
   outcome = cupy.transpose(cupy.max(sub_blocks, axis=[-2,-1]), axes=(2,3,0,1))
   

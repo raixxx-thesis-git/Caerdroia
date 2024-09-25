@@ -133,10 +133,7 @@ def grad_for_pow(L: Node, R: Node, prev_grad: ndarray) -> ndarray:
   return (grad_L, grad_R)
 
 def grad_for_conv2d(blocks: Node, kernels: Node, prev_grad: ndarray) -> ndarray:
-  L, R, L_is_constant, R_is_constant = LR_init(L, R)
-
-  prev_grad # The shape of this prev_gradient is in the space of R ^ B x K x H' x W'
-  blocks # THe shape of this matrix is in the space of R ^ B x C x H x W
+  blocks_, kernels_, L_is_constant, R_is_constant = LR_init(blocks, kernels)
   
   # WE ENCOUNTER A PROBLEM: STATEMENT
   # We have the previous gradient of R ^ B x K x H' x W' but at the same time, we are doing
@@ -144,14 +141,15 @@ def grad_for_conv2d(blocks: Node, kernels: Node, prev_grad: ndarray) -> ndarray:
   # and the second operand is 6 dimentional. It's incompatbile. Hence, it can't be calculated.
   # SOLVED!
 
-  kernel_height = kernels.tensor.shape[2]
-  kernel_width = kernels.tensor.shape[3]
+  kernel_height = kernels_.shape[2]
+  kernel_width = kernels_.shape[3]
 
+  print(blocks.metadata)
   stride_height = blocks.get_metadata('strides')[0]
   stride_width = blocks.get_metadata('strides')[1]
   
-  sub_blocks = block_stride_view(blocks, (kernel_height, kernel_width), (stride_height. stride_width))
-  subscript = 'bahw->hwbcrs'
+  sub_blocks = block_stride_view(blocks_, (kernel_height, kernel_width), (stride_height, stride_width))
+  subscript = 'bahw->hwbcrs' #a == k_0
   einstein_sum = cupy.einsum(subscript, prev_grad, sub_blocks)
 
   return einstein_sum
