@@ -34,6 +34,7 @@ class Node(System):
     self.adic: Optional[Union[Triplet, Duplet]] = None
     self.grad_pool = []
     self.virtual_grad_pool = {}
+    self.metadata = {}
   
   def __repr__(self) -> str:
     return (f'Node\nName:{self.name}\n'
@@ -41,7 +42,7 @@ class Node(System):
             f'is_weight:{self.is_weight}\n'
             f'is_constant:{self.is_constant}\n'
             f'data_shape:{cupy.shape(self.tensor)}')
-
+  
   def set_adic(self, adic: Union[Duplet, Triplet, Virtual]) -> None:
     self.adic = adic
   
@@ -50,8 +51,8 @@ class Node(System):
   
   def get_is_constant(self) -> bool:
     return self.is_constant
-  
-  def add_gradient(self, grad: Union[ndarray, None]) -> None:
+   
+  def add_gradient(self, grad: Union[ndarray, None]) -> None: 
     if type(grad) != type(None):
       self.grad_pool.append(grad)
 
@@ -108,6 +109,12 @@ class Node(System):
       total_gradient = total_gradient + grad
     return total_gradient
   
+  def assign_metadata(self, key: str, val: Any) -> None:
+    self.metadata[key] = val
+
+  def get_metadata(self, key: str) -> Any:
+    return self.metadata[key]
+    
   @property
   def T(self):
     return Node(self.tensor.T, name=f'{self.name}.T')

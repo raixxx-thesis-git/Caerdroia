@@ -6,4 +6,5 @@ from .triplet_backprop_system import TripletBackpropSystem
 from .virtual_backprop_system import VirtualBackpropSystem
 from .switch_backprop_system import SwitchBackpropSystem
 from .system_func import *
+from . import misc
 

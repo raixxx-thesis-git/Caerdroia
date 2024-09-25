@@ -53,5 +53,7 @@ class Switch(SwitchBackpropSystem):
   def get_adic_type(self) -> str:
     return 'Switch'
 
+  def in_part_itself(self) -> ndarray:
+    self.inpart = cupy.array([[0.]], dtype=cupy.float64)
 
     

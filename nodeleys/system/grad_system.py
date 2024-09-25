@@ -15,7 +15,8 @@ GRADIENT_METHODS = {
   '**': gradients.grad_for_pow,
   # 'log': self.grad_for_log,
   # 'abs': self.grad_for_abs,
-  'redsum': gradients.grad_for_reduce_sum
+  'redsum': gradients.grad_for_reduce_sum,
+  'flatten': gradients.grad_for_flatten
 }
 
 def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False, idx: int=-1):

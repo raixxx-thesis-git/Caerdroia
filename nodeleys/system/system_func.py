@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from nodeleys.system import secure_type
-from typing import TYPE_CHECKING, Optional, Union, List
+from nodeleys.system.misc import block_stride_view
+from typing import TYPE_CHECKING, Optional, Union, List, Tuple
 from cupy import ndarray
 
 import operator
@@ -87,7 +88,33 @@ def node_ln(l_operand: Union[Node, float], name: str='') -> Node:
   outcome = cupy.log(l_operand.tensor)
   return complete_adic_func(l_operand, None, 'ln', outcome, name)
 
-def node_if(domain_vars: List[Node], virtual_graphs: List[Node], conditions: List[str], name: str='') -> Node:
-  from nodeleys.graph import Virtual
-  return Virtual(domain_vars=domain_vars, virtual_graphs=virtual_graphs,
-                 conditions=conditions, name=name).compile()
+# def node_if(domain_vars: List[Node], virtual_graphs: List[Node], conditions: List[str], name: str='') -> Node:
+#   from nodeleys.graph import Virtual
+#   return Virtual(domain_vars=domain_vars, virtual_graphs=virtual_graphs,
+#                  conditions=conditions, name=name).compile()
+
+def node_flatten(l_operand: Union[Node, ndarray], name: str='') -> Node:
+  l_operand = secure_type(l_operand)
+  outcome = cupy.reshape(l_operand.tensor, newshape=(l_operand.tensor.shape[0], -1))
+  return complete_adic_func(l_operand, None, 'flatten', outcome, name)
+
+def node_conv2d(blocks: Union[Node, ndarray], kernels: Union[Node, ndarray], strides: Tuple[int]=(1,1), name: str='') -> Node:
+  blocks, kernels = secure_operands(blocks, kernels)
+
+  sub_blocks = block_stride_view(blocks=blocks.tensor, 
+                                 view_size=(kernels.tensor.shape[2], kernels.tensor.shape[3]), 
+                                 strides=strides)
+  
+  outcome = cupy.einsum('ijklmn,rlmn', sub_blocks, kernels.tensor)
+  outcome = cupy.transpose(outcome, axes=(2,3,0,1))
+
+  output_node = complete_adic_func(blocks, kernels, 'conv2d', outcome, name)
+  output_node.assign_metadata('strides', strides)
+
+def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), strides: Tuple[int]=(1,1), name: str='') -> Node:
+  blocks = secure_type(blocks)
+
+  sub_blocks = block_stride_view(blocks=blocks.tensor, view_size=pool_size, strides=strides)
+  outcome = cupy.transpose(cupy.max(sub_blocks, axis=[-2,-1]), axes=(2,3,0,1))
+  
+  return complete_adic_func(blocks, None, 'maxpool2d', outcome, name)

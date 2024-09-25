@@ -9,17 +9,20 @@ class SwitchBackpropSystem:
   def __init__(self): pass
 
   def domain_mask_gradient(self: Switch) -> None:
+    # In this case, we are doing another whiteboarding system. Since the gradient of the dependent
+    # node is constructed via the virtual graphs, we should do the masking process. Henceforth,
+    # this is required.
     whiteboard = cupy.zeros(shape=self.whiteboard.shape)
     for idx, segregated_idx in enumerate(self.segregated_idxs):
       self.domain.sum_virtual_gradient_by_session(idx)
       gradient = self.domain.get_virtual_gradient_by_session(idx)
       whiteboard[segregated_idx[:,0], segregated_idx[:,1]] = gradient[segregated_idx[:,0], segregated_idx[:,1]]
-    
+
     self.domain.add_gradient(whiteboard)
-    self.domain.get_adic().propagate(passed_adics=self.from_external['passed_adics'],
-                                     bonds=self.from_external['bonds'],
-                                     checkpoints=self.from_external['checkpoints'],
-                                     from_leap=self.from_external['from_leap'])
+    return self.domain.get_adic().propagate(passed_adics=self.from_external['passed_adics'],
+                                            bonds=self.from_external['bonds'],
+                                            checkpoints=self.from_external['checkpoints'],
+                                            from_leap=self.from_external['from_leap'])
 
   def propagate(self: Union[Switch, SwitchBackpropSystem], 
                 passed_adics: List[Union[Triplet, Duplet]]=[], 
@@ -29,7 +32,6 @@ class SwitchBackpropSystem:
     # The backward propagation algorithm in <Switch> adic is different from those of
     # <Duplet> and <Triplet>. Unlike the other two, <Switch> contains multiple independent
     # graphs within itself. These graphs are called sub-graphs (<Switch.sub_graphs>).
-    
     self.from_external = {
       'passed_adics': passed_adics,
       'bonds': bonds,
