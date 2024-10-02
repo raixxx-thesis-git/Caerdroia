@@ -70,7 +70,7 @@ def node_div(l_operand: Union[Node, float], r_operand: Union[Node, float], name:
 
 def node_matmul(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str='') -> Node:
   l_operand, r_operand = secure_operands(l_operand, r_operand)
-  outcome = l_operand.tensor @ r_operand. tensor
+  outcome = l_operand.tensor @ r_operand.tensor
   return complete_adic_func(l_operand, r_operand, '@', outcome, name)
 
 def node_pow(l_operand: Union[Node, float], r_operand: Union[Node, float], name: str='') -> Node:
@@ -109,8 +109,9 @@ def node_conv2d(blocks: Union[Node, ndarray], kernels: Union[Node, ndarray], str
   outcome = cupy.transpose(outcome, axes=(2,3,0,1))
 
   output_node = complete_adic_func(blocks, kernels, 'conv2d', outcome, name)
-  output_node.assign_metadata('strides', strides)
-  print(output_node.get_metadata('strides'))
+  blocks.assign_metadata('strides', strides)
+  blocks.assign_metadata('sub_blocks', sub_blocks)
+  blocks.assign_metadata('original_shape', blocks.tensor.shape)
   return output_node
 
 def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), strides: Tuple[int]=(1,1), name: str='') -> Node:

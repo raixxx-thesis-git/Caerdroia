@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union
-from nodeleys.math import BackwardMath
 from nodeleys.math import gradients
 
 if TYPE_CHECKING:
@@ -25,6 +24,10 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
 
   operation = adic.get_operator()
 
+  # 1. CONV2D DOES NOT ORIGINATE FROM IMG LAYER
+  # 2. WHEN COMPUTING THE GRADIENT OF THE CONV2D, WE ARE NOT REFERRING TO THE FLATTEN LAYER
+  # 3. THE FLATTEN LAYER IS A DUPLET THAT CONSISTS CONV2D
+
   if adic.get_adic_type() == 'Switch':
     # Since the virtual adic has multiple outcomes, unlike triplet and duplet that can be
     # easily obtained through <adic.get_outcome()>, therefore the we should create a sub-process
@@ -39,6 +42,7 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
   
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
+
     grad_L, grad_R = GRADIENT_METHODS[operation](l_operand, r_operand, prev_grad)
 
     if not is_virtually:

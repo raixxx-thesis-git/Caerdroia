@@ -4,7 +4,7 @@ from nodeleys.system import compute_grad
 import cupy
 
 if TYPE_CHECKING:
-  from nodeleys.graph import Duplet, Triplet
+  from nodeleys.graph import Duplet, Triplet, Node
 
 class DupletBackpropSystem():
   def __init__(self): pass
@@ -23,13 +23,18 @@ class DupletBackpropSystem():
                 from_leap: bool=False,
                 interrupts: Set[Union[Duplet, Triplet, None]]={},
                 is_virtually: bool=False,
-                idx: int=-1):
+                idx: int=-1,
+                trainable_nodes: Union[Node]=[],
+                tracing: bool=False):
     from nodeleys.graph import Switch
     passed_adics.append(self)
+    
+    operand = self.get_operand()
+    if operand.get_adic() == None and operand.is_trainable: trainable_nodes.append(operand)
 
     self_is_an_interrupt = self.get_outcome() in interrupts
 
-    if not from_leap and not self_is_an_interrupt:
+    if (not from_leap and not self_is_an_interrupt) and (not tracing):
       compute_grad(self, is_virtually, idx)
 
     is_end = self.end_duplet() or self_is_an_interrupt
@@ -46,8 +51,12 @@ class DupletBackpropSystem():
         return self.prev.propagate(passed_adics=passed_adics,
                                    bonds=bonds,
                                    checkpoints=checkpoints,
-                                   from_leap=from_leap)
-      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
+                                   from_leap=from_leap,
+                                   tracing=tracing,
+                                   trainable_nodes=trainable_nodes)
+      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, 
+                                 is_virtually=is_virtually, idx=idx, tracing=tracing,
+                                 trainable_nodes=trainable_nodes)
 
     elif is_end:
       if len(checkpoints) != 0:
@@ -56,7 +65,9 @@ class DupletBackpropSystem():
         T[a,...].
         '''
         leap_to = checkpoints.pop()
-        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, is_virtually=is_virtually, idx=idx)
+        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, 
+                                 is_virtually=is_virtually, idx=idx, tracing=tracing,
+                                 trainable_nodes=trainable_nodes)
       
       '''
       This is executed if the current adic is D[n] and D[n+1] is None.
@@ -67,5 +78,5 @@ class DupletBackpropSystem():
   def set_as_objective(self: Triplet):
     self.get_outcome().add_gradient(cupy.array([[1.]]))
 
-  def begin_backprop(self):
-    return self.propagate([], [], [])
+  def begin_backprop(self, tracing: bool=False, traces=[]):
+    return self.propagate([], [], [], tracing=tracing, trainable_nodes=traces)

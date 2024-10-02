@@ -134,22 +134,30 @@ def grad_for_pow(L: Node, R: Node, prev_grad: ndarray) -> ndarray:
 
 def grad_for_conv2d(blocks: Node, kernels: Node, prev_grad: ndarray) -> ndarray:
   blocks_, kernels_, L_is_constant, R_is_constant = LR_init(blocks, kernels)
-  
-  # WE ENCOUNTER A PROBLEM: STATEMENT
-  # We have the previous gradient of R ^ B x K x H' x W' but at the same time, we are doing
-  # the multivarible derivation of matrices from diffrent space. The first operand is 4 dimensional
-  # and the second operand is 6 dimentional. It's incompatbile. Hence, it can't be calculated.
-  # SOLVED!
 
+  # Calculating the gradient for the kernel
   kernel_height = kernels_.shape[2]
   kernel_width = kernels_.shape[3]
 
-  print(blocks.metadata)
+
   stride_height = blocks.get_metadata('strides')[0]
   stride_width = blocks.get_metadata('strides')[1]
   
   sub_blocks = block_stride_view(blocks_, (kernel_height, kernel_width), (stride_height, stride_width))
-  subscript = 'bahw->hwbcrs' #a == k_0
-  einstein_sum = cupy.einsum(subscript, prev_grad, sub_blocks)
+  subscript = 'bahw,hwbcrs' #a == k_0
+  grad_kernels = cupy.einsum(subscript, prev_grad, sub_blocks)
 
-  return einstein_sum
+
+  # Calculating the gradient for the blocks
+  original_shape = blocks.get_metadata('original_shape')
+  subscript = 'bjhw,jcrs->hwbcrs'
+  grad_blocks = cupy.einsum(subscript, prev_grad, kernels_)
+  sub_blocks = blocks.get_metadata('sub_blocks')
+
+  whiteboard = cupy.zeros(shape=original_shape)
+
+  for h in range(0, grad_blocks.shape[0], stride_height):
+    for w in range(0, grad_blocks.shape[1], stride_width):
+      whiteboard[:,:,h:h+kernel_height,w:w+kernel_width] += grad_blocks[h,w,:,:,:,:]
+
+  return (whiteboard, grad_kernels)

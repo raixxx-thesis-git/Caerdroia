@@ -17,7 +17,7 @@ class NodeError(Exception):
 class Node(System):
   def __init__(self, tensor: ndarray | List[Any], 
                name: str = None, 
-               is_weight: bool = False,
+               is_trainable: bool = False,
                operation: str|None = None,
                is_constant: bool = False):
     if type(tensor) == ndarray: 
@@ -28,7 +28,7 @@ class Node(System):
 
     super().__init__()
     self.name = name
-    self.is_weight = is_weight
+    self.is_trainable = is_trainable
     self.operation = operation
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
@@ -39,7 +39,7 @@ class Node(System):
   def __repr__(self) -> str:
     return (f'Node\nName:{self.name}\n'
             f'Memory:{id(self)}\n'
-            f'is_weight:{self.is_weight}\n'
+            f'is_trainable:{self.is_trainable}\n'
             f'is_constant:{self.is_constant}\n'
             f'data_shape:{cupy.shape(self.tensor)}')
   

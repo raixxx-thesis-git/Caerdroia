@@ -23,7 +23,7 @@ def block_stride_view(blocks: Node, view_size: Tuple[int], strides: Tuple[int]=(
   pick_shape = (new_height, new_width, batch_size, channel, view_height, view_width)
 
   blocks_strides = cupy.array((blocks.strides + blocks.strides)[2:])
-  blocks_stride_strides = cupy.array((blocks.strides[2]*(stride_height-1), blocks.strides[3]*(stride_width-1), 0, 0,0,0))
+  blocks_stride_strides  = cupy.array((blocks.strides[2]*(stride_height-1), blocks.strides[3]*(stride_width-1), 0, 0,0,0))
   # memory_skip = (blocks.strides + blocks.strides)[2:]
   memory_skip = (blocks_strides + blocks_stride_strides).get()
 
