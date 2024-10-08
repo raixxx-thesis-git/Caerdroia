@@ -36,6 +36,9 @@ def grad_for_reduce_sum(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}
       (L.shape[0] == 1 and L.shape[0] == prev_grad.shape[0])):
     grad_L = cupy.ones(shape=L.shape) * prev_grad
 
+  elif (L.shape[0] == prev_grad.shape[0]) and (prev_grad.shape[1] == 1):
+    grad_L = cupy.ones(shape=L.shape) * prev_grad
+
   return grad_L
 
 def grad_for_add(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
@@ -87,21 +90,21 @@ def grad_for_sub(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
   return (grad_L, grad_R)
 
 def grad_for_div(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
-  L, R, L_is_constant, R_is_constant = LR_init(L, R)
+  L, R = L.tensor, R.tensor
 
   if L.shape == R.shape:
-    grad_L = consider((1/R) * prev_grad, L_is_constant)
-    grad_R = consider(-1.0*L/(R**2) * prev_grad, R_is_constant)
+    grad_L = (1/R) * prev_grad
+    grad_R = -1.0*(L/(R**2)) * prev_grad
   elif R.shape == ():
-    grad_L = consider((1/R) * prev_grad, L_is_constant)
-    grad_R = consider((-1/R**2) * cupy.sum(prev_grad * L, keepdims=True), R_is_constant)
+    grad_L = (1/R) * prev_grad
+    grad_R = (-1/R**2) * cupy.sum(prev_grad * L, keepdims=False)
   elif L.shape == ():
-    grad_L = consider(cupy.sum((1/R) * prev_grad, keepdims=True), L_is_constant)
-    grad_R = consider(prev_grad * (-L)/(R**2), R_is_constant)
-
-  print(L.shape, R.shape)
-  print(grad_L)
-  print(grad_R)
+    grad_L = cupy.sum((1/R) * prev_grad, keepdims=False)
+    grad_R = prev_grad * (-L)/(R**2)
+  elif (L.shape[0] == R.shape[0]) and (R.shape[1] == 1): # (X, D) and (X, 1)
+    grad_L = prev_grad / R
+    grad_R = -1 * (1/R**2) * cupy.diag(prev_grad @ L.T)[:,None]
+ 
   return (grad_L, grad_R)
 
 def grad_for_mul(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
