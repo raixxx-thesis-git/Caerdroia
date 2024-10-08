@@ -2,6 +2,7 @@ autograd.ipynb
 venv/
 nodeleys/__pycache__
 nodeleys/system/__pycache__
+nodeleys/system/misc/__pycache__
 nodeleys/graph/__pycache__
 nodeleys/math/__pycache__
 nodeleys/model/__pycache__
