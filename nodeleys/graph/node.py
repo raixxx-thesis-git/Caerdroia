@@ -32,8 +32,9 @@ class Node(System):
     self.operation = operation
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
-    self.grad_pool = []
-    self.virtual_grad_pool = {}
+    self.grad_pool = cupy.zeros(shape=self.tensor.shape)
+    self.virtual_grad_pool: Dict[int, List[ndarray]] = {}
+    self.last_virtual_grad = {}
     self.metadata = {}
   
   def __repr__(self) -> str:
@@ -53,8 +54,12 @@ class Node(System):
     return self.is_constant
    
   def add_gradient(self, grad: Union[ndarray, None]) -> None: 
+    # if type(grad) != type(None):
+    #   self.grad_pool.append(grad)
+
     if type(grad) != type(None):
-      self.grad_pool.append(grad)
+      self.last_grad = grad
+      self.grad_pool += grad
 
   def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
     try:
@@ -66,7 +71,6 @@ class Node(System):
       # This error is expected when <virtual_grad_pool> has not been initialized. We initialize
       # the virtual gradient pool with a key that corresponds to the virtual session / condition (<idx>) 
       # and a value of the passed gradient.
-      self.virtual_grad_pool: Dict[int, List[ndarray]]
       self.virtual_grad_pool[idx] = [grad]
 
     except AttributeError:
@@ -97,23 +101,25 @@ class Node(System):
     return self.virtual_grad_pool[idx][-1]
   
   def get_last_gradient(self) -> None:
-    return self.grad_pool[-1]
+    # return self.grad_pool[-1]
+    return self.last_grad
   
   def get_gradient(self) -> ndarray:
     if len(self.grad_pool) == 0:
       print('No gradient is provided.')
       return
     
-    total_gradient = self.grad_pool[0]
-    for grad in self.grad_pool[1:]:
-      total_gradient = total_gradient + grad
-    return total_gradient
+    # total_gradient = self.grad_pool[0]
+    # for grad in self.grad_pool[1:]:
+    #   total_gradient = total_gradient + grad
+    # return total_gradient
+    return self.grad_pool
   
-  def assign_metadata(self, key: str, val: Any) -> None:
-    self.metadata[key] = val
+  def assign_metadata(self, metadata: Dict[str, Any]) -> None:
+    self.metadata = metadata
 
-  def get_metadata(self, key: str) -> Any:
-    return self.metadata[key]
+  def get_metadata(self) -> Any:
+    return self.metadata
     
   @property
   def T(self):

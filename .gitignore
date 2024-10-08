@@ -4,7 +4,12 @@ nodeleys/__pycache__
 nodeleys/system/__pycache__
 nodeleys/graph/__pycache__
 nodeleys/math/__pycache__
+nodeleys/model/__pycache__
+nodeleys/model/layers/__pycache__
 graph.png
 graphx.png
-
+test.ipynb
+test2.ipynb
+cuda_exploration.ipynb
+exec_time_survey.ipynb
 # git rm -r --cached .

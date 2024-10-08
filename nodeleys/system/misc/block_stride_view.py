@@ -1,11 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple
+from cupy import ndarray
 import cupy
 
 if TYPE_CHECKING:
   from nodeleys.graph import Node
 
-def block_stride_view(blocks: Node, view_size: Tuple[int], strides: Tuple[int]=(1,1)):
+def block_stride_view(blocks: ndarray, view_size: Tuple[int], strides: Tuple[int]=(1,1)):
   batch_size = blocks.shape[0]
   channel = blocks.shape[1]
   domain_height = blocks.shape[2]

@@ -16,13 +16,18 @@ GRADIENT_METHODS = {
   # 'abs': self.grad_for_abs,
   'redsum': gradients.grad_for_reduce_sum,
   'flatten': gradients.grad_for_flatten,
-  'conv2d': gradients.grad_for_conv2d
+  'conv2d': gradients.grad_for_conv2d,
+  'maxpool2d': gradients.grad_for_maxpool2d,
+  'concat': gradients.grad_for_concat,
+  'relu': gradients.grad_for_relu,
+  'leakyrelu': gradients.grad_for_leaky_relu
 }
 
 def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False, idx: int=-1):
   from nodeleys.graph import Duplet, Triplet, Virtual
 
   operation = adic.get_operator()
+  metadata = adic.get_outcome().get_metadata()
 
   # 1. CONV2D DOES NOT ORIGINATE FROM IMG LAYER
   # 2. WHEN COMPUTING THE GRADIENT OF THE CONV2D, WE ARE NOT REFERRING TO THE FLATTEN LAYER
@@ -43,7 +48,7 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
   if isinstance(adic, Triplet):
     l_operand, r_operand = adic.get_operands()
 
-    grad_L, grad_R = GRADIENT_METHODS[operation](l_operand, r_operand, prev_grad)
+    grad_L, grad_R = GRADIENT_METHODS[operation](l_operand, r_operand, prev_grad, metadata)
 
     if not is_virtually:
       adic.operands_add_gradient(grad_L, grad_R)
@@ -52,7 +57,7 @@ def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False
 
   elif isinstance(adic, Duplet):
     l_operand = adic.get_operand()
-    grad_L = GRADIENT_METHODS[operation](l_operand, prev_grad)
+    grad_L = GRADIENT_METHODS[operation](l_operand, prev_grad, metadata)
     
     if not is_virtually:
       adic.operand_add_gradient(grad_L)
