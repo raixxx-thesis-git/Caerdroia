@@ -1,12 +1,6 @@
 autograd.ipynb
 venv/
-nodeleys/__pycache__
-nodeleys/system/__pycache__
-nodeleys/system/misc/__pycache__
-nodeleys/graph/__pycache__
-nodeleys/math/__pycache__
-nodeleys/model/__pycache__
-nodeleys/model/layers/__pycache__
+__pycache__
 graph.png
 graphx.png
 test.ipynb

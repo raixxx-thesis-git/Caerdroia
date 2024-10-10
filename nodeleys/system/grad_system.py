@@ -12,6 +12,7 @@ GRADIENT_METHODS = {
   '*': gradients.grad_for_mul,
   '@': gradients.grad_for_matmul,
   '**': gradients.grad_for_pow,
+  'ln': gradients.grad_for_ln,
   # 'log': self.grad_for_log,
   # 'abs': self.grad_for_abs,
   'redsum': gradients.grad_for_reduce_sum,

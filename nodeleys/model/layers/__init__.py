@@ -1,3 +1,3 @@
 from .layer_base import LayerBase
-from .dense import Dense
-from .presets_activations import *
+from .core_presets import *
+from .activation_presets import *

@@ -8,14 +8,14 @@ if TYPE_CHECKING:
   from nodeleys.graph import Node
 
 class LayerBase():
-  def __init__(self, name: str='', initializers = None, nobuild: bool=False):
+  def __init__(self, name: str='', initializers = None, no_register: bool=False):
     self.initializers = initializers
     self.name = name
-    self.nobuild = nobuild
-    self.built = False
+    self.no_register = no_register
+    self.registered = False
 
   def __call__(self, tensors_in: Node):
-    if not self.built and not self.nobuild: 
-      self.build(tensors_in)
-      self.built = True
+    if not self.registered and not self.no_register: 
+      self.register(tensors_in)
+      self.registered = True
     return self.call(tensors_in)

@@ -36,34 +36,40 @@ class TripletBackpropSystem():
                 idx: int=-1,
                 trainable_nodes: Union[Node]=[],
                 tracing=False):
-    from nodeleys.graph import Switch, Triplet
-    from nodeleys.system import SwitchBackpropSystem
+    # This will be used to pass down the kwargs to the other propagates
+    kwargs = locals()
+    del kwargs['self']
+
+    # Tracking flow
     passed_adics.append(self)
 
+    # To check whether the operands is a trainable or not. If it's trainable,
+    # then register it to the tracked trainable nodes list.
     operands = self.get_operands()
     if operands[0].get_adic() == None and operands[0].is_trainable: trainable_nodes.append(operands[0])
     if operands[1].get_adic() == None and operands[1].is_trainable: trainable_nodes.append(operands[1])
 
+    # When using a Switch, the interrupts are assigned. Hence the process
+    # must regard these interrutps.
     self_is_an_interrupt = self.get_outcome() in interrupts
     
     if (not from_leap and not self_is_an_interrupt) and (not tracing): 
       compute_grad(self, is_virtually, idx)
 
+    # Reaching the end of the node or an interrupt if using a Switch.
     is_end = self.end_triplet() or self_is_an_interrupt
   
     if self.complete_triplet() and from_leap == False:
       # Add T[n,...] as a checkpoint if T[n,...] is a complete triplet and is coming from
       # by-turns propagation (not from leap propagation).
-
       checkpoints.append(self)
     
     if is_end and len(checkpoints) != 0:
       # if current T is T[n,a,...], leap to T[a,...]
       leap_to = checkpoints.pop()
 
-      return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, 
-                               is_virtually=is_virtually, idx=idx, tracing=tracing, 
-                               trainable_nodes=trainable_nodes)
+      kwargs['from_leap'] = True
+      return leap_to.propagate(**kwargs)
     
     if not from_leap:
       if is_end:
@@ -74,7 +80,6 @@ class TripletBackpropSystem():
       elif self.prev[0] == None and self.prev[1] != None:
         # This happens if T[n,...] = T(x, y, z, op) where x does not inherit T/D while
         # y inherits T/D. We move T[n,...] to T[n+1,...].
-
         new_bond = (self, self.prev[1])
         if new_bond not in bonds:
           bonds.append(new_bond)
@@ -86,9 +91,8 @@ class TripletBackpropSystem():
                                         from_leap=from_leap,
                                         tracing=tracing,
                                         trainable_nodes=trainable_nodes)
-        return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, 
-                                      is_virtually=is_virtually, idx=idx, tracing=tracing,
-                                      trainable_nodes=trainable_nodes)
+        kwargs['from_leap'] = False
+        return self.prev[1].propagate(**kwargs)
       
       elif self.prev[0] != None:
         # This happens if T[n,...] = T(x, y, z, op) either where y does or does not inherit 
@@ -106,9 +110,8 @@ class TripletBackpropSystem():
                                         from_leap=from_leap,
                                         tracing=tracing,
                                         trainable_nodes=trainable_nodes)
-        return self.prev[0].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, 
-                                      is_virtually=is_virtually, idx=idx, tracing=tracing,
-                                      trainable_nodes=trainable_nodes)
+        kwargs['from_leap'] = False
+        return self.prev[0].propagate(**kwargs)
       
     else:
       # When this condition is true, T[n,...] must be T(x, y, z, op) and x and y inherit T/D. Since
@@ -126,9 +129,8 @@ class TripletBackpropSystem():
                                       from_leap=from_leap,
                                       tracing=tracing,
                                       trainable_nodes=trainable_nodes)
-      return self.prev[1].propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, 
-                                    is_virtually=is_virtually, idx=idx, tracing=tracing,
-                                    trainable_nodes=trainable_nodes)
+      kwargs['from_leap'] = False
+      return self.prev[1].propagate(**kwargs)
     
   def set_as_objective(self: Triplet):
     self.get_outcome().add_gradient(cupy.array([[1.]]))

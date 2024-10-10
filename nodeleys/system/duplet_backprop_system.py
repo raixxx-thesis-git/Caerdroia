@@ -26,12 +26,20 @@ class DupletBackpropSystem():
                 idx: int=-1,
                 trainable_nodes: Union[Node]=[],
                 tracing: bool=False):
-    from nodeleys.graph import Switch
+    # This will be used to pass down the kwargs to the other propagates
+    kwargs = locals()
+    del kwargs['self']
+
+    # Tracking flow
     passed_adics.append(self)
     
+    # To check whether the operands is a trainable or not. If it's trainable,
+    # then register it to the tracked trainable nodes list.
     operand = self.get_operand()
     if operand.get_adic() == None and operand.is_trainable: trainable_nodes.append(operand)
 
+    # When using a Switch, the interrupts are assigned. Hence the process
+    # must regard these interrutps.
     self_is_an_interrupt = self.get_outcome() in interrupts
 
     if (not from_leap and not self_is_an_interrupt) and (not tracing):
@@ -54,9 +62,8 @@ class DupletBackpropSystem():
                                    from_leap=from_leap,
                                    tracing=tracing,
                                    trainable_nodes=trainable_nodes)
-      return self.prev.propagate(passed_adics, bonds, checkpoints, False, interrupts=interrupts, 
-                                 is_virtually=is_virtually, idx=idx, tracing=tracing,
-                                 trainable_nodes=trainable_nodes)
+      kwargs['from_leap'] = False
+      return self.prev.propagate(**kwargs)
 
     elif is_end:
       if len(checkpoints) != 0:
@@ -65,9 +72,8 @@ class DupletBackpropSystem():
         T[a,...].
         '''
         leap_to = checkpoints.pop()
-        return leap_to.propagate(passed_adics, bonds, checkpoints, True, interrupts=interrupts, 
-                                 is_virtually=is_virtually, idx=idx, tracing=tracing,
-                                 trainable_nodes=trainable_nodes)
+        kwargs['from_leap'] = False
+        return self.prev.propagate(**kwargs)
       
       '''
       This is executed if the current adic is D[n] and D[n+1] is None.

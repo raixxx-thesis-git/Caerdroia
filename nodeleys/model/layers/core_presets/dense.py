@@ -14,7 +14,7 @@ class Dense(LayerBase):
     super().__init__(name=name, initializers=initializers)
     self.units = units
 
-  def build(self, tensor_in: Node):
+  def register(self, tensor_in: Node):
     inter_shape = tensor_in.tensor.shape[-1]
     self.weights = Node(tensor=self.initializers((inter_shape, self.units)), 
                         name=f'weights-{self.name}',

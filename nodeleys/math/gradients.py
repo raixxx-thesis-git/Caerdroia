@@ -108,18 +108,24 @@ def grad_for_div(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
   return (grad_L, grad_R)
 
 def grad_for_mul(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
-  L, R, L_is_constant, R_is_constant = LR_init(L, R)
+  L, R, = L.tensor, R.tensor
 
+  print(L.shape, R.shape)
   if L.shape == R.shape:
-    grad_L = consider(R * prev_grad, L_is_constant)
-    grad_R = consider(L * prev_grad, R_is_constant)
+    grad_L = R * prev_grad
+    grad_R = L * prev_grad
   elif R.shape == ():
-    grad_L = consider(R * prev_grad, L_is_constant)
-    grad_R = consider(cupy.sum(prev_grad * L, keepdims=True), R_is_constant)
+    grad_L = R * prev_grad
+    grad_R = cupy.sum(prev_grad * L, keepdims=True)
   elif L.shape == ():
     pass
-
   return (grad_L, grad_R)
+
+def grad_for_ln(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
+  L = L.tensor
+
+  grad_L = prev_grad / L
+  return grad_L
 
 def grad_for_flatten(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
   L, L_is_constant = L_init(L)
@@ -127,16 +133,15 @@ def grad_for_flatten(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -
   return grad_L
 
 def grad_for_pow(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
-  L, R, L_is_constant, R_is_constant = LR_init(L, R)
+  L, R = L.tensor, R.tensor
   
-  L_is_shapeless = L.shape == ()
-  R_is_shapeless = R.shape == ()
-
-  if R_is_shapeless:
-    grad_L = consider(R * L**(R-1) * prev_grad, L_is_constant)
-    grad_R = consider(cupy.sum(prev_grad * (L**R) * cupy.log(L)), R_is_constant)
-  elif L_is_shapeless:
-    None
+  if R.shape == ():
+    grad_L = R * L**(R-1) * prev_grad
+    grad_R = cupy.sum(prev_grad * (L**R) * cupy.log(L))
+  elif L.shape == () and R.shape == prev_grad.shape:
+    grad_L = 0
+    grad_R = cupy.log(L) * prev_grad * cupy.power(L, R)
+    print('accounted')
               
   return (grad_L, grad_R)
 
