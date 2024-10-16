@@ -32,7 +32,7 @@ class Node(System):
     self.operation = operation
     self.is_constant = is_constant
     self.adic: Optional[Union[Triplet, Duplet]] = None
-    self.grad_pool = cupy.zeros(shape=self.tensor.shape)
+    self.grad = cupy.zeros(shape=self.tensor.shape)
     self.virtual_grad_pool: Dict[int, List[ndarray]] = {}
     self.last_virtual_grad = {}
     self.metadata = {}
@@ -46,6 +46,9 @@ class Node(System):
   
   def set_adic(self, adic: Union[Duplet, Triplet, Virtual]) -> None:
     self.adic = adic
+
+  def clear_grad(self):
+    self.grad = cupy.zeros(shape=self.tensor.shape)
   
   def get_adic(self) -> Union[Duplet, Triplet, Virtual]:
     return self.adic
@@ -59,7 +62,7 @@ class Node(System):
 
     if type(grad) != type(None):
       self.last_grad = grad
-      self.grad_pool += grad
+      self.grad += grad
 
   def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
     try:
@@ -105,7 +108,7 @@ class Node(System):
     return self.last_grad
   
   def get_gradient(self) -> ndarray:
-    if len(self.grad_pool) == 0:
+    if len(self.grad) == 0:
       print('No gradient is provided.')
       return
     
@@ -113,7 +116,7 @@ class Node(System):
     # for grad in self.grad_pool[1:]:
     #   total_gradient = total_gradient + grad
     # return total_gradient
-    return self.grad_pool
+    return self.grad
   
   def assign_metadata(self, metadata: Dict[str, Any]) -> None:
     self.metadata = metadata
@@ -124,4 +127,7 @@ class Node(System):
   @property
   def T(self):
     return Node(self.tensor.T, name=f'{self.name}.T')
+  
+  def slice_batch(self, start: int, end: int):
+    return Node(self.tensor[start:end], name=f'{self.name}-batch_sliced')
 

@@ -7,4 +7,5 @@ test.ipynb
 test2.ipynb
 cuda_exploration.ipynb
 exec_time_survey.ipynb
+nodeleys_cifar10.ipynb
 # git rm -r --cached .

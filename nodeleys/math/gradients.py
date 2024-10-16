@@ -78,14 +78,18 @@ def grad_for_sub(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
   R_broadcast = (L.shape[0] != 1 and R.shape[0] == 1) and (L.shape[1] == R.shape[1])
 
   if equal_space_operands:
-    grad_L = consider(prev_grad, L_is_constant)
-    grad_R = consider(-1.0 * prev_grad, R_is_constant)
+    grad_L = prev_grad
+    grad_R = -1.0 * prev_grad
   elif L_broadcast:
-    grad_L = consider(cupy.sum(prev_grad, axis=0, keepdims=True), L_is_constant)
-    grad_R = consider(-1.0 * prev_grad, R_is_constant)
+    grad_L = cupy.sum(prev_grad, axis=0, keepdims=True)
+    grad_R = -1.0 * prev_grad
   elif R_broadcast:
-    grad_L = consider(prev_grad, L_is_constant)
-    grad_R = consider(-1.0 * cupy.sum(prev_grad, axis=0, keepdims=True), R_is_constant)
+    grad_L = prev_grad
+    grad_R = -1.0 * cupy.sum(prev_grad, axis=0, keepdims=True)
+  elif (L.shape[0] == R.shape[0]) and (R.shape[1] == 1):
+    grad_L = prev_grad
+    # print('SUB', grad_L)
+    grad_R = 0.0
 
   return (grad_L, grad_R)
 
@@ -110,15 +114,15 @@ def grad_for_div(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
 def grad_for_mul(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
   L, R, = L.tensor, R.tensor
 
-  print(L.shape, R.shape)
   if L.shape == R.shape:
     grad_L = R * prev_grad
     grad_R = L * prev_grad
   elif R.shape == ():
     grad_L = R * prev_grad
-    grad_R = cupy.sum(prev_grad * L, keepdims=True)
+    grad_R = cupy.sum(prev_grad * L, keepdims=False)
   elif L.shape == ():
     pass
+  
   return (grad_L, grad_R)
 
 def grad_for_ln(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
@@ -141,14 +145,13 @@ def grad_for_pow(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
   elif L.shape == () and R.shape == prev_grad.shape:
     grad_L = 0
     grad_R = cupy.log(L) * prev_grad * cupy.power(L, R)
-    print('accounted')
               
   return (grad_L, grad_R)
 
 def grad_for_relu(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> ndarray:
   L, _ = L_init(L)
-  cond0 = ((L < 0) * 0.0)
-  cond1 = ((L >= 0) * metadata['slope'] * prev_grad)
+  cond0 = ((L < 0.0) * 0.0)
+  cond1 = ((L >= 0.0) * metadata['slope'] * prev_grad)
   grad_L = cond0 + cond1
   return grad_L
 

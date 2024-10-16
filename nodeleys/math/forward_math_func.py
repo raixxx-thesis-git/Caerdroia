@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from nodeleys.system import secure_type
 from nodeleys.system.misc import block_stride_view
 from typing import TYPE_CHECKING, Optional, Union, List, Tuple, Dict, Any
@@ -25,22 +24,12 @@ def complete_adic_func(l_operand: Node, r_operand: Optional[Node],
     # connect D[n] with D[n-1]
     adic.set_prev(l_operand.get_adic())
 
-    # if l_operand.get_adic() != None:
-    #   # connect D[n-1] with D[n] if D[n-1] exists
-    #   l_operand.get_adic().set_next(adic)
   else:
     # create a Duplet T[n](L, O; op)
     adic = Triplet(l_operand, r_operand, outcome_node, operator)
 
     # connect T[n] with T0[n-1] and T1[n-1]
     adic.set_prev((l_operand.get_adic(), r_operand.get_adic()))
-
-    # if l_operand.adic != None:
-    #   # connect T0[n-1] with T[n] if T0[n-1] exists
-    #   l_operand.get_adic().set_next(adic)
-    # elif r_operand.adic != None:
-    #   # connect T1[n-1] with T[n] if T1[n-1] exists
-    #   r_operand.get_adic().set_next(adic)
   
   outcome_node.set_adic(adic)
   outcome_node.assign_metadata(metadata)
@@ -84,26 +73,20 @@ def node_redsum(l_operand: Union[Node, float], axis: int, name: str='') -> Node:
   outcome = cupy.sum(l_operand.tensor, axis=axis, keepdims=True)
   return complete_adic_func(l_operand, None, 'redsum', outcome, name)
 
-def node_ln(l_operand: Union[Node, float], name: str='') -> Node:
+def node_ln(l_operand: Union[Node, float], eps: int=1e-7, name: str='') -> Node:
   l_operand = secure_type(l_operand)
-  outcome = cupy.log(l_operand.tensor)
+  outcome = cupy.log(l_operand.tensor + 1e-30)
   return complete_adic_func(l_operand, None, 'ln', outcome, name)
-
-# def node_if(domain_vars: List[Node], virtual_graphs: List[Node], conditions: List[str], name: str='') -> Node:
-#   from nodeleys.graph import Virtual
-#   return Virtual(domain_vars=domain_vars, virtual_graphs=virtual_graphs,
-#                  conditions=conditions, name=name).compile()
 
 def node_relu(l_operand: Node, slope: int=1, name: str='') -> Node:
   l_operand = secure_type(l_operand)
-  cond0 = ((l_operand.tensor < 0) * 0.0)
-  cond1 = ((l_operand.tensor >= 0) * slope * l_operand.tensor)
+  cond0 = ((l_operand.tensor < 0.0) * 0.0)
+  cond1 = ((l_operand.tensor >= 0.0) * slope * l_operand.tensor)
   outcome = cond0 + cond1
 
   metadata = {
     'slope': slope
   }
-  
   return complete_adic_func(l_operand, None, 'relu', outcome, name, metadata)
 
 def node_leaky_relu(l_operand: Node, slope_minval :int=0.01, slope_posval: int=1.0, name: str='') -> Node:
@@ -116,7 +99,6 @@ def node_leaky_relu(l_operand: Node, slope_minval :int=0.01, slope_posval: int=1
     'slope_minval': slope_minval,
     'slope_posval': slope_posval
   }
-
   return complete_adic_func(l_operand, None, 'leakyrelu', outcome, name, metadata)
 
 def node_flatten(l_operand: Union[Node, ndarray], name: str='') -> Node:
@@ -130,9 +112,6 @@ def node_conv2d(blocks: Union[Node, ndarray], kernels: Union[Node, ndarray], str
   sub_blocks = block_stride_view(blocks=blocks.tensor, 
                                  view_size=(kernels.tensor.shape[2], kernels.tensor.shape[3]), 
                                  strides=strides)
-  
-  # blocks.assign_metadata('strides', strides)
-  # blocks.assign_metadata('original_shape', blocks.tensor.shape)
 
   metadata = {
     'strides': strides,
@@ -141,7 +120,6 @@ def node_conv2d(blocks: Union[Node, ndarray], kernels: Union[Node, ndarray], str
 
   outcome = cupy.einsum('ijklmn,rlmn', sub_blocks, kernels.tensor)
   outcome = cupy.transpose(outcome, axes=(2,3,0,1))
-
   return complete_adic_func(blocks, kernels, 'conv2d', outcome, name, metadata)
 
 def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), strides: Tuple[int]=(1,1), name: str='') -> Node:
@@ -154,7 +132,6 @@ def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), st
   }
 
   outcome = cupy.transpose(cupy.max(sub_blocks, axis=[-2,-1]), axes=(2,3,0,1))
-
   return complete_adic_func(blocks, None, 'maxpool2d', outcome, name, metadata)
 
 def node_concat(primary_tensor: Union[Node, ndarray], secondary_tensor: Union[Node, ndarray], axis: int, name: str=''):
@@ -164,5 +141,4 @@ def node_concat(primary_tensor: Union[Node, ndarray], secondary_tensor: Union[No
   metadata = {
     'axis': axis
   }
-
   return complete_adic_func(primary_tensor, secondary_tensor, 'concat', outcome, name, metadata)

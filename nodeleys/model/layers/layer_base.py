@@ -1,14 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from nodeleys import Node
 from nodeleys.math.forward_math_func import *
-from nodeleys.math.initializers import *
 
 if TYPE_CHECKING:
   from nodeleys.graph import Node
 
 class LayerBase():
-  def __init__(self, name: str='', initializers = None, no_register: bool=False):
+  def __init__(self, name: str='', initializers: Union[Node, List[Node]] = None, no_register: bool=False):
     self.initializers = initializers
     self.name = name
     self.no_register = no_register

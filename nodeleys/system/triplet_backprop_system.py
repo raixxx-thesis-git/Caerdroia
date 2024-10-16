@@ -136,5 +136,5 @@ class TripletBackpropSystem():
     self.get_outcome().add_gradient(cupy.array([[1.]]))
 
   def begin_backprop(self, interrupts: List[Union[Duplet, Triplet, None]]=[], tracing: bool=False, traces=[]):
-    self.propagate([], [], [], interrupts=interrupts, tracing=tracing, trainable_nodes=traces)
-    return 
+    return self.propagate([], [], [], interrupts=interrupts, tracing=tracing, trainable_nodes=traces)
+     
