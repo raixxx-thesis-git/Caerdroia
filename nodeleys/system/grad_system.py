@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Union
 from nodeleys.math import gradients
 
 if TYPE_CHECKING:
-  from nodeleys.graph import Duplet, Triplet, Virtual
+  from nodeleys.graph import Duplet, Triplet, Switch
 
 GRADIENT_METHODS = {
   '+': gradients.grad_for_add,
@@ -24,8 +24,8 @@ GRADIENT_METHODS = {
   'leakyrelu': gradients.grad_for_leaky_relu
 }
 
-def compute_grad(adic: Union[Duplet, Triplet, Virtual], is_virtually: bool=False, idx: int=-1):
-  from nodeleys.graph import Duplet, Triplet, Virtual
+def compute_grad(adic: Union[Duplet, Triplet, Switch], is_virtually: bool=False, idx: int=-1):
+  from nodeleys.graph import Duplet, Triplet, Switch
 
   operation = adic.get_operator()
   metadata = adic.get_outcome().get_metadata()
