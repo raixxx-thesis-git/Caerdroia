@@ -10,6 +10,21 @@ Genesis plays a crucial role as Nodeleys's backend, having a main focus on compu
 
 ## Supported Operations
 How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times B}`$
+1. Add ($`+`$) operations
+    1. $`(A, B) + (A, B)`$
+    2. $`(A, B) + ()`$ and vice versa
+    3. $`(A, B) + (1, B)`$ and vice versa
+2. Substraction ($`-`$) operations
+    1. $`(A, B) - (A, B)`$
+    2. $`(A, B) - (1, B)`$ and vice versa
+    3. $`(A, B) - (A, 1)`$
+3. Multiplication ($`\cdot`$) operations:
+    1. $`(A, B) \cdot (A, B)`$
+    2. $`(A, B) \cdot ()`$ and vice versa
+3. Division ($`/`$) operations:
+    1. $`(A, B) / (A, B)`$
+    2. $`(A, B) \cdot ()`$ and vice versa
+    3. $`(A, B) \cdot (A, 1)`$
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.

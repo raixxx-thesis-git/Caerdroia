@@ -121,7 +121,8 @@ def grad_for_mul(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
     grad_L = R * prev_grad
     grad_R = cupy.sum(prev_grad * L, keepdims=False)
   elif L.shape == ():
-    pass
+    grad_L = cupy.sum(prev_grad * L, keepdims=False)
+    grad_R = R * prev_grad
   
   return (grad_L, grad_R)
 
