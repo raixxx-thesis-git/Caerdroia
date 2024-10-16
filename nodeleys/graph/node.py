@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union, Dict
 from cupy import ndarray
 from typing import List, Any, Tuple
-from nodeleys.system import System
+# from nodeleys.system import System (DEPRECATED!)
 
 if TYPE_CHECKING:
   from nodeleys.graph.node import Node
@@ -14,7 +14,7 @@ class NodeError(Exception):
   def __init__(self, msg):
     super().__init__(msg)
 
-class Node(System):
+class Node():
   def __init__(self, tensor: ndarray | List[Any], 
                name: str = None, 
                is_trainable: bool = False,

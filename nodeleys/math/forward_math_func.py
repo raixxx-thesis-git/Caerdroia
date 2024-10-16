@@ -139,6 +139,18 @@ def node_maxpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), st
   outcome = cupy.transpose(cupy.max(sub_blocks, axis=[-2,-1]), axes=(2,3,0,1))
   return complete_adic_func(blocks, None, 'maxpool2d', outcome, name, metadata)
 
+def node_minpool2d(blocks: Union[Node, ndarray], pool_size: Tuple[int]=(2,2), strides: Tuple[int]=(1,1), name: str='') -> Node:
+  blocks = secure_type(blocks)
+  sub_blocks = block_stride_view(blocks=blocks.tensor, view_size=pool_size, strides=strides)
+
+  metadata = {
+    'strides': strides,
+    'pool_size': pool_size
+  }
+
+  outcome = cupy.transpose(cupy.min(sub_blocks, axis=[-2,-1]), axes=(2,3,0,1))
+  return complete_adic_func(blocks, None, 'minpool2d', outcome, name, metadata)
+
 def node_concat(primary_tensor: Union[Node, ndarray], secondary_tensor: Union[Node, ndarray], axis: int, name: str=''):
   primary_tensor, secondary_tensor = secure_operands(primary_tensor, secondary_tensor)
   outcome = cupy.concatenate((primary_tensor.tensor, secondary_tensor.tensor), axis=axis)
