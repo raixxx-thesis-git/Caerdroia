@@ -82,7 +82,12 @@ def node_relu(l_operand: Node, slope: int=1, name: str='') -> Node:
   l_operand = secure_type(l_operand)
   cond0 = ((l_operand.tensor < 0.0) * 0.0)
   cond1 = ((l_operand.tensor >= 0.0) * slope * l_operand.tensor)
-  outcome = cond0 + cond1
+  add_elemwise_kernel = cupy.ElementwiseKernel(
+     'float64 x, float64 y', 'float64 z',
+     '''
+     z = x + y
+     ''', 'my_kernel')
+  outcome = add_elemwise_kernel(cond0, cond1)
 
   metadata = {
     'slope': slope

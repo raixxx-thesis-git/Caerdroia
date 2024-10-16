@@ -152,7 +152,13 @@ def grad_for_relu(L: Node, prev_grad: ndarray, metadata: Dict[str, Any]={}) -> n
   L, _ = L_init(L)
   cond0 = ((L < 0.0) * 0.0)
   cond1 = ((L >= 0.0) * metadata['slope'] * prev_grad)
-  grad_L = cond0 + cond1
+  # grad_L = cond0 + cond1
+  add_elemwise_kernel = cupy.ElementwiseKernel(
+     'float64 x, float64 y', 'float64 z',
+     '''
+     z = x + y
+     ''', 'my_kernel')
+  grad_L = add_elemwise_kernel(cond0, cond1)
   return grad_L
 
 def grad_for_leaky_relu(L: Node, prev_grad: ndarray, metadata: Dict[str,Any]={}) -> ndarray:
