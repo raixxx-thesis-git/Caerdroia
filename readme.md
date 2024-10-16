@@ -25,6 +25,9 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
     1. $`(A, B) / (A, B)`$
     2. $`(A, B) / (\emptyset)`$ and vice versa
     3. $`(A, B) / (A, 1)`$
+4. Matrix multiplication ($`@`$) operation: $`(A, B) @ (B, C)`$
+5. Power (^) operations: $`(A, B)^{(\emptyset)}`$ and vice versa
+5. Natural logarithm ($`ln`$) operation: $`\ln (A, B)`$
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
