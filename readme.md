@@ -1,14 +1,15 @@
 # Nodeleys (in-dev)
 <img src="nodeleys_logo.jpg" alt="Nodeleys Logo" style="width:50%;">
-Nodeleys is a new lightweight deep-learning framework that works on top of Numpy. Nodeleys supports automatic differentiation, static computational graphs, and dynamic computational graphs. At this milestone, Nodeleys supports CUDA with the use of Cupy. However, Cupy may be altered in the future.
+Nodeleys is a new lightweight deep-learning framework that works on top of CuPy (CUDA supported NumPy). Nodeleys supports automatic differentiation and dynamic computational graphs. At this milestone, Nodeleys supports CUDA with the use of CuPy. However, CuPy may be altered in the future with a better backend written directly from C/C++ CUDA. The author of this project is currently still learning how to do so.
 
 
 # Genesis BackEnd
 <img src="genesis_logo.jpg" alt="Genesis Logo" style="width:50%;">
-Genesis plays a crucial role as Nodeleys's backend, having a main focus on computational graphs and gradient flow algorithms which are the key features of a deep learning framework. I would like to say that Genesis is the "minimal" product of Nodeleys. With this backend as the foundation for Nodeleys, the framework currently only works for 2D Tensor data (matrices) and also is still "under development". A layering system, initializers, multi-input or outputs, loss functions, optimizers, etc are YET to be developed in this backend. In the future, Genesis would be replaced with a more robust and advanced backend, Exodus, supporting a higher rank of tensor data, a wider range of customization, rich layer variations, etc.
+Genesis plays a crucial role as Nodeleys's backend, having a main focus on computational graphs and gradient flow algorithms which are the key features of a deep learning framework. I would like to say that Genesis is the "minimal" product of Nodeleys. With this backend as the foundation for Nodeleys, the framework currently only works on some mathematical expressions listed in the "Supported Operations" section. A layering system, initializers, multi-input or outputs, loss functions, optimizers, etc also has been developed, yet the variations is still so limited. In the future, Genesis might be replaced with a more robust and advanced backend, Exodus, supporting wider range of mathematical expressions; a wider range of customization; and rich layer, loss, and optimizer variations.
 
-Exodus will be the "viable" product of Nodeleys.
 
+## Supported Operations
+How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times B}`$
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
