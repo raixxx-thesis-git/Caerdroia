@@ -61,8 +61,13 @@ class Node(System):
     #   self.grad_pool.append(grad)
 
     if type(grad) != type(None):
+      # print(grad.shape, self.tensor.shape, self.name)
+      # assert grad.shape == self.tensor.shape
       self.last_grad = grad
-      self.grad += grad
+      if self.is_trainable:
+        self.grad += grad
+      else:
+        self.grad = grad
 
   def add_virtual_gradient(self, grad: Union[ndarray, None], idx: int) -> None:
     try:

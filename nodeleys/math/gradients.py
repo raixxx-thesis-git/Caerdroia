@@ -89,7 +89,7 @@ def grad_for_sub(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
   elif (L.shape[0] == R.shape[0]) and (R.shape[1] == 1):
     grad_L = prev_grad
     # print('SUB', grad_L)
-    grad_R = 0.0
+    grad_R = cupy.array(0.0)
 
   return (grad_L, grad_R)
 
@@ -143,7 +143,7 @@ def grad_for_pow(L: Node, R: Node, prev_grad: ndarray, metadata: Dict[str, Any]=
     grad_L = R * L**(R-1) * prev_grad
     grad_R = cupy.sum(prev_grad * (L**R) * cupy.log(L))
   elif L.shape == () and R.shape == prev_grad.shape:
-    grad_L = 0
+    grad_L = cupy.array(0)
     grad_R = cupy.log(L) * prev_grad * cupy.power(L, R)
               
   return (grad_L, grad_R)
