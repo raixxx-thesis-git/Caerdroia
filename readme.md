@@ -1,4 +1,4 @@
-# Nodeleys (in-dev)
+# Nodeleys (V 0.1)
 <img src="nodeleys_logo.jpg" alt="Nodeleys Logo" style="width:50%;">
 Nodeleys is a new lightweight deep-learning framework that works on top of CuPy (CUDA supported NumPy). Nodeleys supports automatic differentiation and dynamic computational graphs. At this milestone, Nodeleys supports CUDA with the use of CuPy. However, CuPy may be altered in the future version with a better backend written directly from C/C++ CUDA. The author of this project is currently still learning how to do so.
 
@@ -60,3 +60,6 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
 
 ## Documentation
 Full documentation is still being written.
+To see quick demonstration, visit:
+
+https://colab.research.google.com/drive/1iKmdE4D5p1sk5PIvqwFYql8WYKYpRdxw#scrollTo=ruX_ynSGTjXg
