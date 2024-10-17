@@ -32,8 +32,8 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
     2. $`\text{redsum}(\mathbb{R}^{A\times B}, \text{axis}=1)`$
 8. Flatten ($`\text{flatten}`$) operation: $`\text{flatten}(\mathbb{R}^{N\times C\times H\times W})`$
 9. Convolution 2D ($`\circledast`$) operation: $`\mathbb{R}^{N\times C\times H\times W} \circledast \mathbb{R}^{N\times C' \times R \times S}`$
-10. Maxpooling 2D ($`\text{maxpool}`$) operation: $`\text{maxpool}(\mathbb{R}^{N\times C\times H\times W})`$
-11. Concatenation ($`\text{concat}`$) operation: $`\text{concat}(\mathbb{R}^{\hdot})`$
+10. Maxpooling 2D ($`\text{maxpool2d}`$) operation: $`\text{maxpool2d}(\mathbb{R}^{N\times C\times H\times W})`$
+11. Concatenation ($`\text{concat}`$) operation: $`\text{concat}(\mathbb{R}^{A\times B\times C\times ...}, \mathbb{R}^{A\times B\times C\times ...}, \text{axis}=\text{any})`$
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
