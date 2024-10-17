@@ -57,3 +57,6 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
 4. Optimizing memory usage
 5. Altering CuPy to C/C++ CUDA directly
 6. Expanding model.py built-in methods to optimize Nodeleys model
+
+## Documentation
+Full documentation is still being written.
