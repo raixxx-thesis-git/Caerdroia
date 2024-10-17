@@ -11,23 +11,23 @@ Genesis plays a crucial role as Nodeleys's backend, having a main focus on compu
 ## Supported Operations
 How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times B}`$ and if a tensor has $`\emptyset`$, it is a scalar.
 1. Add ($`+`$) operations
-    1. $`(A, B) + (A, B)`$
-    2. $`(A, B) + (\emptyset)`$ and vice versa
-    3. $`(A, B) + (1, B)`$ and vice versa
+    1. $`\mathbb{R}^{A\times B} + \mathbb{R}^{A\times B}`$
+    2. $`\mathbb{R}^{A\times B} + \mathbb{R}`$ and vice versa
+    3. $`\mathbb{R}^{A\times B} + \mathbb{R}^{1\times B}`$ and vice versa
 2. Substraction ($`-`$) operations
-    1. $`(A, B) - (A, B)`$
-    2. $`(A, B) - (1, B)`$ and vice versa
-    3. $`(A, B) - (A, 1)`$
+    1. $`\mathbb{R}^{A\times B} - \mathbb{R}^{A\times B}`$
+    2. $`\mathbb{R}^{A\times B} - \mathbb{R}^{1\times B}`$ and vice versa
+    3. $`\mathbb{R}^{A\times B} - \mathbb{R}^{A\times 1}`$
 3. Multiplication ($`\cdot`$) operations:
-    1. $`(A, B) \cdot (A, B)`$
-    2. $`(A, B) \cdot ()`$ and vice versa
+    1. $`\mathbb{R}^{A\times B} \cdot \mathbb{R}^{A\times B}`$
+    2. $`\mathbb{R}^{A\times B} \cdot \mathbb{R}`$ and vice versa
 3. Division ($`/`$) operations:
-    1. $`(A, B) / (A, B)`$
-    2. $`(A, B) / (\emptyset)`$ and vice versa
-    3. $`(A, B) / (A, 1)`$
-4. Matrix multiplication ($`@`$) operation: $`(A, B) @ (B, C)`$
-5. Power (^) operations: $`(A, B)^{(\emptyset)}`$ and vice versa
-5. Natural logarithm ($`ln`$) operation: $`\ln (A, B)`$
+    1. $`\mathbb{R}^{A\times B} / \mathbb{R}^{A\times B}`$
+    2. $`\mathbb{R}^{A\times B} / \mathbb{R}`$ and vice versa
+    3. $`\mathbb{R}^{A\times B} / \mathbb{R}^{A\times 1}`$
+4. Matrix multiplication ($`@`$) operation: $`\mathbb{R}^{A\times B} @ \mathbb{R}^{B\times C}`$
+5. Power (^) operations: $`(A, B)^{\mathbb{R}}`$ and vice versa
+5. Natural logarithm ($`ln`$) operation: $`\ln \mathbb{R}^{A\times B}`$
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
