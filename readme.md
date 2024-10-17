@@ -21,13 +21,16 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
 3. Multiplication ($`\cdot`$) operations:
     1. $`\mathbb{R}^{A\times B} \cdot \mathbb{R}^{A\times B}`$
     2. $`\mathbb{R}^{A\times B} \cdot \mathbb{R}`$ and vice versa
-3. Division ($`/`$) operations:
+4. Division ($`/`$) operations:
     1. $`\mathbb{R}^{A\times B} / \mathbb{R}^{A\times B}`$
     2. $`\mathbb{R}^{A\times B} / \mathbb{R}`$ and vice versa
     3. $`\mathbb{R}^{A\times B} / \mathbb{R}^{A\times 1}`$
-4. Matrix multiplication ($`@`$) operation: $`\mathbb{R}^{A\times B} @ \mathbb{R}^{B\times C}`$
-5. Power (^) operations: $`(A, B)^{\mathbb{R}}`$ and vice versa
-5. Natural logarithm ($`ln`$) operation: $`\ln \mathbb{R}^{A\times B}`$
+5. Matrix multiplication ($`@`$) operation: $`\mathbb{R}^{A\times B} @ \mathbb{R}^{B\times C}`$
+6. Power (^) operations: $`(\mathbb{R}^{A\timesB})^{\mathbb{R}}`$ and vice versa
+7. Reduce summation  ($`\text{redsum}`$) operation: 
+    1. $`\text{redsum}(\mathbb{R}^{A\times B}, \text{axis}=0)`$
+    2. $`\text{redsum}(\mathbb{R}^{A\times B}, \text{axis}=1)`$
+8. 
 
 ## Features in this version
 1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
