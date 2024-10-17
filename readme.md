@@ -1,6 +1,6 @@
 # Nodeleys (in-dev)
 <img src="nodeleys_logo.jpg" alt="Nodeleys Logo" style="width:50%;">
-Nodeleys is a new lightweight deep-learning framework that works on top of CuPy (CUDA supported NumPy). Nodeleys supports automatic differentiation and dynamic computational graphs. At this milestone, Nodeleys supports CUDA with the use of CuPy. However, CuPy may be altered in the future with a better backend written directly from C/C++ CUDA. The author of this project is currently still learning how to do so.
+Nodeleys is a new lightweight deep-learning framework that works on top of CuPy (CUDA supported NumPy). Nodeleys supports automatic differentiation and dynamic computational graphs. At this milestone, Nodeleys supports CUDA with the use of CuPy. However, CuPy may be altered in the future version with a better backend written directly from C/C++ CUDA. The author of this project is currently still learning how to do so.
 
 
 # Genesis BackEnd
@@ -34,19 +34,26 @@ How to read: if a tensor has $`(A, B)`$, it means it is in $`\mathbb{R}^{A\times
 9. Convolution 2D ($`\circledast`$) operation: $`\mathbb{R}^{N\times C\times H\times W} \circledast \mathbb{R}^{N\times C' \times R \times S}`$
 10. Maxpooling 2D ($`\text{maxpool2d}`$) operation: $`\text{maxpool2d}(\mathbb{R}^{N\times C\times H\times W})`$
 11. Concatenation ($`\text{concat}`$) operation: $`\text{concat}(\mathbb{R}^{A\times B\times C\times ...}, \mathbb{R}^{A\times B\times C\times ...}, \text{axis}=\text{any})`$
+12. ReLU ($`\text{relu}`$) operation: $`\text{relu}(\mathbb{R}^{A\times B\times C\times ...})`$
+13. LeakyReLU ($`\text{leakyrelu}`$) operation: $`\text{leakyrelu}(\mathbb{R}^{A\times B\times C\times ...})`$
 
 ## Features in this version
-1. Node system. This version can create a node that holds a gradient, a tensor, and other states related to forward/backward propagation.
-2. Forward propagation. This version supports forward propagation, although for limited operations (Supports basic operators: addition, subtraction, multiplication, and division; linear algebra operators: matrix multiplication, broadcasting (limited to the mentioned operators); and an aggregate function: reduce summation. Does not support trigonometric functions, logarithms, and other advanced functions just yet).
-3. Backward propagation. Supports gradient computation for the mentioned operators.
-4. Skip connections.
-5. Dynamic graphs (still under development).
-6. Maximum tensor rank of 2.
+1. Dynamic computation graph
+2. Automatic differentiation
+3. Mathematical expressions (see Supported Operations section)
+4. Pre-built core layers: Dense, Add, Concatenate, Conv2D, MaxPool2D, Flatten
+5. Pre-built activation layers: ReLU, LeakyReLU, Sigmoid, Softmax
+6. Pre-built initializers: RandomNormal, XavierNormal, XavierUniform
+7. Pre-built loss: CategoricalCrossEntropy
+8. Subclassing API
+9. Model construction
+10. Model training
+11. Multi input and/or output model
 
-## What to be done
-1. Dynamic graphs.
-2. Support for a wider range of operations (both for forward and backward propagation).
-3. Initializers.
-4. Weights update mechanism.
-5. Layering system.
-6. Testing one input one output.
+## What to be done next in Exodus BackEnd
+1. Adding wider range mathematical expressions
+2. Adding wider range pre-built core layers such as AvgPool2D, RNN, and LSTM
+3. Adding wider range pre-built activation functions
+4. Optimizing memory usage
+5. Altering CuPy to C/C++ CUDA directly
+6. Expanding model.py built-in methods to optimize Nodeleys model
